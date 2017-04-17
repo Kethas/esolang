@@ -1,0 +1,113 @@
+factor      : INTEGER
+            | STRING
+            | (PLUS | MINUS) expression
+            | LPAREN expression RPAREN
+
+term        : factor ((MUL | DIV) factor)*
+
+expr        : term ((PLUS | MINUS) term)*
+
+expression  : expr
+            | var
+            | func_call
+            | param_var
+            | anon_func_d
+            | null
+
+null        : NULL
+
+param_var   : DOLLAR
+
+var         : ID
+
+var_assign  : var ASSIGN expression
+
+named_func_d: FUNCTION var statement_c
+
+anon_func_d : FUNCTION statement_c
+
+func_call   : (func_call | param_var | var) LPAREN (expression (COMMA expression)*)* RPAREN
+
+statement_c : COLON statement_l END
+
+return_s    : RETURN expression
+
+statement_l : statement
+            | statement_l statement (SEMI)?
+
+statement   : func_call
+            | named_func_d
+            | var_assign
+            | return_s
+            | EMPTY
+
+program_d   : ID statement_c
+
+main_d      : MAIN program_d
+
+program     : main_d (program_d)*
+
+
+
+
+
+
+#################################################
+#################################################
+#  _______  ____   _  __ ______  _   _   _____  #
+# |__   __|/ __ \ | |/ /|  ____|| \ | | / ____| #
+#    | |  | |  | || ' / | |__   |  \| || (___   #
+#    | |  | |  | ||  <  |  __|  | . ` | \___ \  #
+#    | |  | |__| || . \ | |____ | |\  | ____) | #
+#    |_|   \____/ |_|\_\|______||_| \_||_____/  #
+#################################################
+#################################################
+
+
+
+
+
+
+INTEGER     : [integer literal function]
+
+STRING      : [string literal function: ""]
+
+ID          : [identifier function: must start with an alphabetical char, _, but the rest can also contain numbers or $]
+
+COMMENT     : [comment function: starts with # and continues until the end of the line]
+
+WHITESPACE  : [whitespace function: skips spaces, tabs, and newlines until there is another character]
+
+PLUS        : +
+
+MINUS       : -
+
+MUL         : *
+
+DIV         : /
+
+LPAREN      : (
+
+RPAREN      : )
+
+DOLLAR      : $
+
+ASSIGN      : =
+
+FUNCTION    : function
+
+COMMA       : ,
+
+COLON       : :
+
+END         : end
+
+RETURN      : return
+
+SEMI        : ;
+
+EMPTY       :
+
+MAIN        : main
+
+NULL        : null
