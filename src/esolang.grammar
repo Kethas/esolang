@@ -1,51 +1,53 @@
 factor      : INTEGER
             | STRING
-            | (PLUS | MINUS) expression
-            | LPAREN expression RPAREN
+            | var
+            | func_d
+            | null
+            | undefined
+            | func_call
+            | (PLUS | MINUS) factor
+            | LPAREN expr RPAREN
 
 term        : factor ((MUL | DIV) factor)*
 
 expr        : term ((PLUS | MINUS) term)*
 
-expression  : expr
-            | var
-            | func_call
-            | param_var
-            | anon_func_d
-            | null
+undefined   : UNDEFINED
 
 null        : NULL
 
-param_var   : DOLLAR
-
 var         : ID
 
-var_assign  : var ASSIGN expression
+var_assign  : var ASSIGN expr
 
-named_func_d: FUNCTION var statement_c
+func_d      : FUNCTION argument_d statement_c
 
-anon_func_d : FUNCTION statement_c
+var_l       : var (COMMA var)*
+            | EMPTY
 
-func_call   : (func_call | param_var | var) LPAREN (expression (COMMA expression)*)* RPAREN
+func_call   : expr arguments
 
-statement_c : COLON statement_l END
+arguments   : LPAREN expr_l RPAREN
 
-return_s    : RETURN expression
+expr_l      : expr (COMMA expr)*
+            | EMPTY
+
+
+statement_c : LCBRACE statement_l RCBRACE
+
+return_s    : RETURN expr
+            | RETURN
 
 statement_l : statement
-            | statement_l statement (SEMI)?
+            | statement_l statement
 
-statement   : func_call
-            | named_func_d
+statement   : expr
             | var_assign
             | return_s
             | EMPTY
+            | statement SEMI
 
-program_d   : ID statement_c
-
-main_d      : MAIN program_d
-
-program     : main_d (program_d)*
+program     : statement_l
 
 
 
@@ -90,17 +92,39 @@ LPAREN      : (
 
 RPAREN      : )
 
+LCBRACE     : {
+
+RCBRACE     : }
+
 DOLLAR      : $
 
 ASSIGN      : =
 
-FUNCTION    : function
+EQUALS      : ==
+
+NOT_EQUALS  : !=
+
+RABRACKET   : <
+
+LABRACKET   : >
+
+GRT_EQUAL   : >=
+
+LSS_EQUAL   : <=
+
+NOT         : !
+
+AND         : &
+
+OR          : |
+
+NAND        : !&
+
+NOR         : !|
 
 COMMA       : ,
 
 COLON       : :
-
-END         : end
 
 RETURN      : return
 
@@ -108,6 +132,8 @@ SEMI        : ;
 
 EMPTY       :
 
-MAIN        : main
+FUNCTION    : fun | lambda | λ
 
 NULL        : null
+
+UNDEFINED   : undefined

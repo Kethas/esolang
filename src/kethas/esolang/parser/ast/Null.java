@@ -1,13 +1,13 @@
-package kethas.esolang.parser;
+package kethas.esolang.parser.ast;
 
 import kethas.esolang.lexer.Token;
 
 /**
  * Created by Kethas on 17/04/2017.
  */
-public class Empty extends AST {
+public class Null extends AST {
 
-    protected Empty(Token token) {
+    public Null(Token token) {
         super(token);
     }
 

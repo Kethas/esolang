@@ -1,6 +1,6 @@
 package kethas.esolang.interpreter;
 
-import kethas.esolang.parser.AST;
+import kethas.esolang.parser.ast.AST;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;

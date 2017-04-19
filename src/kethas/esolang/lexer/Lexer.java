@@ -9,23 +9,21 @@ import java.util.Map;
  */
 public class Lexer {
 
-    private int pos;
-
-    private char currentChar;
-
     private final String text;
-
     private final Map<String, TokenType> keyWords = new HashMap<>();
+    private int pos;
+    private char currentChar;
 
     public Lexer(String text) {
         this.text = text;
         pos = 0;
         currentChar = pos > text.length() - 1 ? '\0' : text.charAt(pos);
 
-        keyWords.put("function", TokenType.FUNCTION);
-        keyWords.put("end", TokenType.END);
+        keyWords.put("lambda", TokenType.FUNCTION);
+        keyWords.put("λ", TokenType.FUNCTION);
+        keyWords.put("fun", TokenType.FUNCTION);
         keyWords.put("return", TokenType.RETURN);
-        keyWords.put("main", TokenType.MAIN);
+        keyWords.put("undefined", TokenType.UNDEFINED);
         keyWords.put("null", TokenType.NULL);
     }
 
@@ -119,6 +117,13 @@ public class Lexer {
         return new Token(tokenType, id, getLine(), getColumn());
     }
 
+    public Token peekNextToken() {
+        int p = pos;
+        Token token = getNextToken();
+        pos = p;
+        return token;
+    }
+
     public Token getNextToken(){
         while (currentChar != '\0') {
             if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n') {
@@ -161,6 +166,12 @@ public class Lexer {
             } else if (currentChar == ')') {
                 advance();
                 return new Token(TokenType.RPAREN, ")", getLine(), getColumn());
+            } else if (currentChar == '{') {
+                advance();
+                return new Token(TokenType.LCBRACE, "{", getLine(), getColumn());
+            } else if (currentChar == '}') {
+                advance();
+                return new Token(TokenType.LCBRACE, "}", getLine(), getColumn());
             } else if (currentChar == '$') {
                 advance();
                 return new Token(TokenType.DOLLAR, "$", getLine(), getColumn());
@@ -175,7 +186,7 @@ public class Lexer {
                 return new Token(TokenType.COLON, ":", getLine(), getColumn());
             } else if (currentChar == ';') {
                 advance();
-                return new Token(TokenType.SEMI, ")", getLine(), getColumn());
+                return new Token(TokenType.SEMI, ";", getLine(), getColumn());
             }
 
             error();

@@ -14,15 +14,16 @@ public enum TokenType {
     LPAREN,
     RPAREN,
     DOLLAR,
+    LCBRACE,
+    RCBRACE,
     ASSIGN,
-    FUNCTION,
     COMMA,
     COLON,
-    END,
     RETURN,
     SEMI,
-    MAIN,
     NULL,
+    UNDEFINED,
+    FUNCTION,
     EOF;
 
     public boolean is(TokenType... others){

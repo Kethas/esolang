@@ -1,18 +1,18 @@
-package kethas.esolang.parser;
+package kethas.esolang.parser.ast;
 
 import kethas.esolang.lexer.Token;
 
 /**
  * Created by Kethas on 17/04/2017.
  */
-public class Var extends AST {
+public class Str extends AST {
 
-    public Var(Token token) {
+
+    public Str(Token token) {
         super(token);
     }
 
-    public String getName(){
+    public String getValue(){
         return getToken().value;
     }
-
 }

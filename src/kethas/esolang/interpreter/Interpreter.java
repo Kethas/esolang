@@ -1,9 +1,9 @@
 package kethas.esolang.interpreter;
 
 import kethas.esolang.lexer.TokenType;
-import kethas.esolang.parser.BinaryOp;
-import kethas.esolang.parser.Num;
-import kethas.esolang.parser.UnaryOp;
+import kethas.esolang.parser.ast.BinaryOp;
+import kethas.esolang.parser.ast.Num;
+import kethas.esolang.parser.ast.UnaryOp;
 
 /**
  * Created by Kethas on 14/04/2017.

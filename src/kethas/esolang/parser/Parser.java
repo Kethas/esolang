@@ -3,6 +3,7 @@ package kethas.esolang.parser;
 import kethas.esolang.lexer.Lexer;
 import kethas.esolang.lexer.Token;
 import kethas.esolang.lexer.TokenType;
+import kethas.esolang.parser.ast.*;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,21 +37,30 @@ public class Parser {
 
     private AST factor() {
         Token token = currentToken;
+        AST result = new Undefined(token);
         if (token.type.is(INTEGER)) {
             eat(INTEGER);
-            return new Num(token);
+            result = new Num(token);
         } else if (token.type.is(STRING)) {
             eat(STRING);
-            return new Str(token);
+            result = new Str(token);
+        } else if (token.type.is(ID)) {
+            result = var();
+        } else if (token.type.is(FUNCTION)) {
+            result = funcDeclaration();
+        } else if (token.type.is(NULL)) {
+            result = _null();
+        } else if (token.type.is(UNDEFINED)) {
+            eat(UNDEFINED);
         } else if (token.type.is(LPAREN)) {
             eat(LPAREN);
-            AST node = expression();
+            AST node = expr();
             eat(RPAREN);
-            return node;
+            result = node;
         }
 
-        error();
-        return null;
+
+        return result;
     }
 
     private AST term() {
@@ -75,38 +85,6 @@ public class Parser {
         return node;
     }
 
-    private AST expression(){
-        AST result = new Null(currentToken);
-        if (currentToken.type.is(INTEGER, STRING, PLUS, MINUS, LPAREN))
-            result = expr();
-        else if (currentToken.type.is(ID))
-            result = var();
-        else if (currentToken.type.is(NULL))
-            return _null();
-        else if (currentToken.type.is(DOLLAR))
-            result = paramVar();
-        else if (currentToken.type.is(FUNCTION))
-            return anonFuncDeclaration();
-        else
-            error();
-
-        if (currentToken.type.is(LPAREN)){
-            Set<AST> parameters = new HashSet<>();
-            eat(LPAREN);
-            if (!currentToken.type.is(RPAREN)) {
-                parameters.add(expression());
-                while (!currentToken.type.is(RPAREN)) {
-                    eat(COMMA);
-                    parameters.add(expression());
-                }
-            }
-            eat(RPAREN);
-            result = new FuncCall(currentToken, result, parameters);
-        }
-
-        return result;
-    }
-
     private AST statement(){
         AST result = new Null(currentToken);
         if(currentToken.type.is(INTEGER, STRING));
@@ -126,13 +104,42 @@ public class Parser {
         return new Null(token);
     }
 
-    private AST anonFuncDeclaration() {
+    private AST funcDeclaration() {
+        eat(FUNCTION);
+        Set<Var> arguments = new HashSet<>();
+        CompoundStatement compoundStatement;
+        if (currentToken.type.is(ID)) {
+            arguments.add(var());
+            while (currentToken.type.is(COMMA)) {
+                eat(COMMA);
+                if (currentToken.type.is(ID)) {
+                    arguments.add(var());
+                } else {
+                    error();
+                }
+            }
+        }
+        if (currentToken.type.is(LCBRACE)) {
+            compoundStatement = compoundStatement();
+            return new FuncDeclaration(currentToken, compoundStatement, arguments);
+        } else if (!currentToken.type.is(LCBRACE)) {
+            error();
+        }
 
-
-        return null;
+        return new Undefined(currentToken);
     }
 
-    private AST var() {
+    private CompoundStatement compoundStatement() {
+        eat(LCBRACE);
+        Set<AST> statements = new HashSet<>();
+        while (!currentToken.type.is(RCBRACE)) {
+            statements.add(statement());
+        }
+        eat(RCBRACE);
+        return new CompoundStatement(currentToken, statements);
+    }
+
+    private Var var() {
         Var var = new Var(currentToken);
         eat(ID);
         return var;

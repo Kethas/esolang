@@ -1,4 +1,4 @@
-package kethas.esolang.parser;
+package kethas.esolang.parser.ast;
 
 import kethas.esolang.lexer.Token;
 
