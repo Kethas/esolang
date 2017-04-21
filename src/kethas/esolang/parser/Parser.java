@@ -37,7 +37,7 @@ public class Parser {
 
     private AST factor() {
         Token token = currentToken;
-        AST result = new Undefined(token);
+        AST result = new Null(token);
         if (token.type.is(INTEGER)) {
             eat(INTEGER);
             result = new Num(token);
@@ -50,8 +50,6 @@ public class Parser {
             result = funcDeclaration();
         } else if (token.type.is(NULL)) {
             result = _null();
-        } else if (token.type.is(UNDEFINED)) {
-            eat(UNDEFINED);
         } else if (token.type.is(LPAREN)) {
             eat(LPAREN);
             AST node = expr();
@@ -59,8 +57,22 @@ public class Parser {
             result = node;
         }
 
+        while (currentToken.type.is(LPAREN)) {
+            Set<AST> arguments = arguments();
+            result = new FuncCall(currentToken, result, arguments);
+        }
 
         return result;
+    }
+
+    private Set<AST> arguments() {
+        Set<AST> arguments = new HashSet<>();
+        eat(LPAREN);
+        while (!currentToken.type.is(RPAREN)) {
+            arguments.add(expr());
+        }
+        eat(RPAREN);
+        return arguments;
     }
 
     private AST term() {
@@ -86,16 +98,29 @@ public class Parser {
     }
 
     private AST statement(){
-        AST result = new Null(currentToken);
-        if(currentToken.type.is(INTEGER, STRING));
+        AST result;
+        if (currentToken.type.is(RETURN)) {
+            Token token = currentToken;
+            eat(RETURN);
+            result = new Return(token, expr());
+        } else if (currentToken.type.is(ID)) {
+            if (lexer.peekNextToken().type.is(ASSIGN)) {
+                Var var = var();
+                eat(ASSIGN);
+                AST value = expr();
+                result = new VarAssign(var.getToken(), var, value);
+            } else {
+                result = expr();
+            }
+        } else {
+            result = expr();
+        }
+
+        while (currentToken.type.is(SEMI)) {
+            eat(SEMI);
+        }
 
         return result;
-    }
-
-    private AST paramVar() {
-        Token token = currentToken;
-        eat(DOLLAR);
-        return new Var(token);
     }
 
     private AST _null() {
@@ -126,7 +151,7 @@ public class Parser {
             error();
         }
 
-        return new Undefined(currentToken);
+        return new Null(currentToken);
     }
 
     private CompoundStatement compoundStatement() {
@@ -145,8 +170,23 @@ public class Parser {
         return var;
     }
 
+    private Program program() {
+        Program program;
+        Token token = currentToken;
+
+        Set<AST> statements = new HashSet<>();
+
+        while (!currentToken.type.is(EOF)) {
+            statements.add(statement());
+        }
+
+        program = new Program(token, statements);
+
+        return program;
+    }
+
     public AST parse() {
-        AST node = expr();
+        AST node = program();
 
         if (!currentToken.type.is(EOF))
             error();

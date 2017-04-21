@@ -1,35 +1,185 @@
 package kethas.esolang.interpreter;
 
 import kethas.esolang.lexer.TokenType;
-import kethas.esolang.parser.ast.BinaryOp;
-import kethas.esolang.parser.ast.Num;
-import kethas.esolang.parser.ast.UnaryOp;
+import kethas.esolang.parser.ast.*;
+
+import java.util.*;
+
+import static kethas.esolang.interpreter.Obj.NULL;
 
 /**
  * Created by Kethas on 14/04/2017.
  */
 public class Interpreter extends NodeVisitor{
 
+    public static final ExternalFunction println = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            for (Obj o : args) {
+                System.out.print(o.getValue() + " ");
+            }
+            System.out.println();
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction input = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 0)
+                println.invoke(args);
+
+            Scanner s = new Scanner(System.in);
+            String in = s.nextLine();
+
+            try {
+                int i = Integer.parseInt(in);
+                return new Obj(i);
+            } catch (NumberFormatException e) {
+                return new Obj(in);
+            }
+        }
+    };
+
+    private Stack<Map<String, Obj>> stack = new Stack<>();
+
+    public Interpreter() {
+        Map<String, Obj> globals = new HashMap<>();
+
+        globals.put("println", new Obj(println));
+        globals.put("input", new Obj(input));
+
+        stack.push(globals);
+    }
+
+    public Obj visitStr(Str node) {
+        return new Obj(node.getValue());
+    }
+
+    public Obj visitVar(Var node) {
+        for (Map<String, Obj> m : stack) {
+            if (m.containsKey(node.getName()) && m.get(node.getName()) != NULL) {
+                return m.get(node.getName());
+            }
+        }
+        return NULL;
+    }
+
+    public Obj visitVarAssign(VarAssign node) {
+        Obj prevValue = stack.lastElement().get(node.getVar().getName());
+
+        stack.lastElement().put(node.getVar().getName(), visitNode(node.getValue()));
+
+        return NULL;
+    }
+
+    public void visitNull(Null node) {
+    }
+
+    public Obj visitFuncDeclaration(FuncDeclaration node) {
+        return new Obj(new Function(stack, node));
+    }
+
+    public Obj visitFuncCall(FuncCall node) {
+        //TODO: Handle non-function calls
+
+        Obj o = visitNode(node.getFunc());
+
+        if (o.getValue() instanceof Function) {
+            Function func = (Function) o.getValue();
+
+            Stack<Map<String, Obj>> temp = stack;
+
+            Map<String, Obj> funcLocals = new HashMap<>();
+
+            Iterator<Var> argumentDec = func.getFuncDeclaration().getArguments().iterator();
+            Iterator<AST> arguments = node.getArguments().iterator();
+
+            for (int i = 0; i < func.getFuncDeclaration().getArguments().size(); i++) {
+                Var var = argumentDec.next();
+                Obj obj = visitNode(arguments.next());
+
+                funcLocals.put(var.getName(), obj);
+            }
+
+            func.getLocals().push(funcLocals);
+            stack = func.getLocals();
+
+            Obj result;
+
+            try {
+                result = visitNode(func.getFuncDeclaration().getStatements());
+            } catch (ReturnException e) {
+                result = e.getObject();
+            }
+
+            stack = temp;
+            func.getLocals().pop();
+
+            return result;
+        } else if (o.getValue() instanceof ExternalFunction) {
+
+            List<Obj> args = new ArrayList<>();
+
+            for (AST ast : node.getArguments()) {
+                args.add(visitNode(ast));
+            }
+
+            return ((ExternalFunction) o.getValue()).invoke(args);
+        }
+
+        return NULL;
+    }
+
+    public Obj visitCompoundStatement(CompoundStatement node) {
+        Obj result = NULL;
+        for (AST ast : node.getStatements()) {
+            result = visitNode(ast);
+
+            if (ast instanceof Return)
+                throw new ReturnException(result);
+        }
+
+        return result;
+    }
+
+    public Obj visitReturn(Return node) {
+        return visitNode(node.getNode());
+    }
+
+    public void visitProgram(Program node) {
+        try {
+            Obj result;
+            for (AST ast : node.getStatements()) {
+                result = visitNode(ast);
+
+                if (ast instanceof Return)
+                    throw new ReturnException(result);
+            }
+        } catch (ReturnException e) {
+            System.out.println("Program terminated: " + e.getObject().getValue());
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+        }
+    }
+
     public Obj visitNum(Num node){
         return new Obj(node.getValue());
     }
 
-    public Obj visitBinaryOp(BinaryOp node){
-        try {
-            switch (node.getToken().type) {
-                case PLUS:
-                    return visitNode(node.getLeft()).add(visitNode(node.getRight()));
-                case MINUS:
-                    return visitNode(node.getLeft()).subtract(visitNode(node.getRight()));
-                case MUL:
-                    return visitNode(node.getLeft()).multiply(visitNode(node.getRight()));
-                case DIV:
-                    return visitNode(node.getLeft()).divide(visitNode(node.getRight()));
-            }
-        } catch (NullPointerException ignored) {
-            throw new RuntimeException("Cannot perform binary operation on null object");
+    public Obj visitBinaryOp(BinaryOp node) {
+        switch (node.getToken().type) {
+            case PLUS:
+                return visitNode(node.getLeft()).add(visitNode(node.getRight()));
+            case MINUS:
+                return visitNode(node.getLeft()).subtract(visitNode(node.getRight()));
+            case MUL:
+                return visitNode(node.getLeft()).multiply(visitNode(node.getRight()));
+            case DIV:
+                return visitNode(node.getLeft()).divide(visitNode(node.getRight()));
         }
-        return null;
+
+        return NULL;
     }
 
     public Obj visitUnaryOp(UnaryOp node){

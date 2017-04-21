@@ -5,6 +5,8 @@ package kethas.esolang.interpreter;
  */
 public class Obj {
 
+    public static final Obj NULL = new Obj(null);
+
     private final Object value;
 
     public Obj(Object value) {
@@ -26,28 +28,42 @@ public class Obj {
         } else if (value instanceof Integer && with.value instanceof Integer) {
             return new Obj((Integer) value + (Integer) with.value);
         }
-        return null;
+        return NULL;
     }
 
     public Obj subtract(Obj with) {
         if (value instanceof Integer && with.value instanceof Integer) {
             return new Obj((Integer) value - (Integer) with.value);
         }
-        return null;
+        return NULL;
     }
 
     public Obj multiply(Obj with) {
         if (value instanceof Integer && with.value instanceof Integer) {
             return new Obj((Integer) value * (Integer) with.value);
         }
-        return null;
+        return NULL;
     }
 
     public Obj divide(Obj with) {
         if (value instanceof Integer && with.value instanceof Integer) {
             return new Obj((Integer) value / (Integer) with.value);
         }
-        return null;
+        return NULL;
+    }
+
+    public boolean isTruthy() {
+        if (value == null) {
+            return false;
+        } else if (value instanceof Integer) {
+            return (int) value != 0;
+        } else if (value instanceof String) {
+            return !((String) value).isEmpty();
+        } else if (value instanceof Function) {
+            return true;
+        }
+
+        return false;
     }
 
 }

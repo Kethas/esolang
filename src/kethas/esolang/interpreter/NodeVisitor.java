@@ -18,10 +18,13 @@ public class NodeVisitor {
         try {
             Method method = clazz.getMethod(methodName, nodeClass);
             return (Obj) method.invoke(this, node);
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
+        } catch (NoSuchMethodException | IllegalAccessException e) {
             e.printStackTrace();
+        } catch (InvocationTargetException e) {
+            if (e.getTargetException() instanceof ReturnException)
+                throw (ReturnException) e.getTargetException();
         }
-        return null;
+        return new Obj(null);
     }
 
 }

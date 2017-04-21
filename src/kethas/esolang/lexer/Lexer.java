@@ -88,6 +88,7 @@ public class Lexer {
     }
 
     private String string(){
+        advance();
         String result = "";
         while (currentChar != '"' && currentChar != '\n'){
             if (currentChar == '\\'){
@@ -95,8 +96,11 @@ public class Lexer {
                 continue;
             }
             result += currentChar;
+            advance();
         }
-
+        if (currentChar != '"')
+            error();
+        advance();
         return result;
     }
 
@@ -137,7 +141,6 @@ public class Lexer {
             }
 
             if (currentChar == '"'){
-                advance();
                 return new Token(TokenType.STRING, string(), getLine(), getColumn());
             }
 
@@ -171,7 +174,7 @@ public class Lexer {
                 return new Token(TokenType.LCBRACE, "{", getLine(), getColumn());
             } else if (currentChar == '}') {
                 advance();
-                return new Token(TokenType.LCBRACE, "}", getLine(), getColumn());
+                return new Token(TokenType.RCBRACE, "}", getLine(), getColumn());
             } else if (currentChar == '$') {
                 advance();
                 return new Token(TokenType.DOLLAR, "$", getLine(), getColumn());

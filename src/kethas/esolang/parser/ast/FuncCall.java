@@ -10,19 +10,19 @@ import java.util.Set;
 public class FuncCall extends AST {
 
     private final AST func;
-    private final Set<AST> parameters;
+    private final Set<AST> arguments;
 
-    public FuncCall(Token token, AST func, Set<AST> parameters) {
+    public FuncCall(Token token, AST func, Set<AST> arguments) {
         super(token);
         this.func = func;
-        this.parameters = parameters;
+        this.arguments = arguments;
     }
 
     public AST getFunc() {
         return func;
     }
 
-    public Set<AST> getParameters() {
-        return parameters;
+    public Set<AST> getArguments() {
+        return arguments;
     }
 }

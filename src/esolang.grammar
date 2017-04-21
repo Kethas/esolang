@@ -3,7 +3,6 @@ factor      : INTEGER
             | var
             | func_d
             | null
-            | undefined
             | func_call
             | (PLUS | MINUS) factor
             | LPAREN expr RPAREN
@@ -135,5 +134,3 @@ EMPTY       :
 FUNCTION    : fun | lambda | λ
 
 NULL        : null
-
-UNDEFINED   : undefined
