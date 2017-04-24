@@ -23,7 +23,7 @@ public class Interpreter extends NodeVisitor{
         }
     };
 
-    public static final ExternalFunction input = new ExternalFunction() {
+    public static final ExternalFunction readln = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
             if (args.size() != 0)
@@ -47,7 +47,7 @@ public class Interpreter extends NodeVisitor{
         Map<String, Obj> globals = new HashMap<>();
 
         globals.put("println", new Obj(println));
-        globals.put("input", new Obj(input));
+        globals.put("readln", new Obj(readln));
 
         stack.push(globals);
     }
@@ -73,15 +73,17 @@ public class Interpreter extends NodeVisitor{
         return NULL;
     }
 
-    public void visitNull(Null node) {
+    public Obj visitNull(Null node) {
+        return NULL;
     }
 
     public Obj visitFuncDeclaration(FuncDeclaration node) {
-        return new Obj(new Function(stack, node));
+        //noinspection unchecked
+        return new Obj(new Function((Stack<Map<String, Obj>>) stack.clone(), node));
     }
 
     public Obj visitFuncCall(FuncCall node) {
-        //TODO: Handle non-function calls
+        //TODO: Handle non-function calls (String/Integer)
 
         Obj o = visitNode(node.getFunc());
 
@@ -102,8 +104,11 @@ public class Interpreter extends NodeVisitor{
                 funcLocals.put(var.getName(), obj);
             }
 
-            func.getLocals().push(funcLocals);
-            stack = func.getLocals();
+            //noinspection unchecked
+            Stack<Map<String, Obj>> locals = (Stack<Map<String, Obj>>) func.getLocals().clone();
+
+            locals.push(funcLocals);
+            stack = locals;
 
             Obj result;
 
@@ -114,21 +119,26 @@ public class Interpreter extends NodeVisitor{
             }
 
             stack = temp;
-            func.getLocals().pop();
 
             return result;
         } else if (o.getValue() instanceof ExternalFunction) {
 
+            //doesn't even get here
+            //what the fuck is even happening?
+            //TODO: Fix this somehow. I don't even know what the problem is.
+            System.out.println("external function called");
+
             List<Obj> args = new ArrayList<>();
 
             for (AST ast : node.getArguments()) {
-                args.add(visitNode(ast));
+                Obj arg = visitNode(ast);
+                args.add(arg);
             }
 
             return ((ExternalFunction) o.getValue()).invoke(args);
+        } else {
+            throw new RuntimeException("Cannot call value " + o.getValue());
         }
-
-        return NULL;
     }
 
     public Obj visitCompoundStatement(CompoundStatement node) {

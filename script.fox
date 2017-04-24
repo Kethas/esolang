@@ -1,0 +1,21 @@
+f = fun x {
+    fun y {
+        x + y
+    }
+}
+
+
+a = fun x { a = fun y { x + y } }
+
+b = a(2)
+
+c = f(1)(3)
+d = f(1)(2)
+
+#ayy
+
+#this comment works!
+
+return "Closures work!\n f = " + f + " (1) -> " + f(1) + " (4) -> " + f(1)(3)
+
+#this comment works, too!

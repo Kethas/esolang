@@ -2,7 +2,7 @@ package kethas.esolang.parser.ast;
 
 import kethas.esolang.lexer.Token;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * Created by Kethas on 17/04/2017.
@@ -10,9 +10,9 @@ import java.util.Set;
 public class FuncCall extends AST {
 
     private final AST func;
-    private final Set<AST> arguments;
+    private final List<AST> arguments;
 
-    public FuncCall(Token token, AST func, Set<AST> arguments) {
+    public FuncCall(Token token, AST func, List<AST> arguments) {
         super(token);
         this.func = func;
         this.arguments = arguments;
@@ -22,7 +22,7 @@ public class FuncCall extends AST {
         return func;
     }
 
-    public Set<AST> getArguments() {
+    public List<AST> getArguments() {
         return arguments;
     }
 }

@@ -1,6 +1,5 @@
 package kethas.esolang.lexer;
 
-import java.text.MessageFormat;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,10 +19,8 @@ public class Lexer {
         currentChar = pos > text.length() - 1 ? '\0' : text.charAt(pos);
 
         keyWords.put("lambda", TokenType.FUNCTION);
-        keyWords.put("λ", TokenType.FUNCTION);
         keyWords.put("fun", TokenType.FUNCTION);
         keyWords.put("return", TokenType.RETURN);
-        keyWords.put("undefined", TokenType.UNDEFINED);
         keyWords.put("null", TokenType.NULL);
     }
 
@@ -48,16 +45,16 @@ public class Lexer {
     }
 
     private void error(){
-        throw new RuntimeException(MessageFormat.format("Unexpected character '{0}' at {1}:{2}", currentChar, getLine(), getColumn()));
+        throw new RuntimeException("Unexpected character '" + (int) currentChar + "' at " + getColumn() + ":" + getColumn() + "");
     }
 
     private void skipComment(){
-        while (currentChar != '\n')
+        while (!(currentChar == '\n' || currentChar == '\r'))
             advance();
     }
 
     private void skipWhitespace(){
-        while (currentChar == ' ' || currentChar == '\t' || currentChar == '\n')
+        while (currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r')
             advance();
     }
 
@@ -90,7 +87,7 @@ public class Lexer {
     private String string(){
         advance();
         String result = "";
-        while (currentChar != '"' && currentChar != '\n'){
+        while (currentChar != '"' & !(currentChar == '\n' || currentChar == '\r')) {
             if (currentChar == '\\'){
                 result += parseEscape();
                 continue;
@@ -107,7 +104,7 @@ public class Lexer {
     private Token _id(){
         String id = "";
 
-        while (Character.isAlphabetic(currentChar) || Character.isDigit(currentChar) || currentChar == '_' || currentChar == '$'){
+        while (isAlphabetic() || Character.isDigit(currentChar) || currentChar == '_') {
             id += currentChar;
             advance();
         }
@@ -130,7 +127,7 @@ public class Lexer {
 
     public Token getNextToken(){
         while (currentChar != '\0') {
-            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n') {
+            if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r') {
                 skipWhitespace();
                 continue;
             }
@@ -148,7 +145,7 @@ public class Lexer {
                 return new Token(TokenType.INTEGER, integer(), getLine(), getColumn());
             }
 
-            if (Character.isAlphabetic(currentChar) || currentChar == '_')
+            if (isAlphabetic() || currentChar == '_')
                 return _id();
 
             if (currentChar == '+') {
@@ -175,9 +172,9 @@ public class Lexer {
             } else if (currentChar == '}') {
                 advance();
                 return new Token(TokenType.RCBRACE, "}", getLine(), getColumn());
-            } else if (currentChar == '$') {
+            } else if (currentChar == 'λ') {
                 advance();
-                return new Token(TokenType.DOLLAR, "$", getLine(), getColumn());
+                return new Token(TokenType.FUNCTION, "λ", getLine(), getColumn());
             } else if (currentChar == '=') {
                 advance();
                 return new Token(TokenType.ASSIGN, "=", getLine(), getColumn());
@@ -195,6 +192,10 @@ public class Lexer {
             error();
         }
         return new Token(TokenType.EOF, "\\0", getLine(), getColumn());
+    }
+
+    private boolean isAlphabetic() {
+        return (currentChar >= 'A' && currentChar <= 'Z') || (currentChar >= 'a' && currentChar <= 'z');
     }
 
 }

@@ -5,8 +5,8 @@ import kethas.esolang.lexer.Token;
 import kethas.esolang.lexer.TokenType;
 import kethas.esolang.parser.ast.*;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import static kethas.esolang.lexer.TokenType.*;
 
@@ -25,14 +25,18 @@ public class Parser {
     }
 
     private void error() {
-        throw new RuntimeException("Invalid syntax at " + currentToken.line + ":" + currentToken.column + ": " + currentToken.value);
+        throw new RuntimeException("Invalid syntax at " + currentToken.line + ":" + currentToken.column + ": '" + currentToken.value + "'");
+    }
+
+    private void error(String info) {
+        throw new RuntimeException("Invalid syntax at " + currentToken.line + ":" + currentToken.column + ": '" + currentToken.value + "': " + info);
     }
 
     private void eat(TokenType tokenType) {
         if (currentToken.type.is(tokenType))
             currentToken = lexer.getNextToken();
         else
-            error();
+            error("expecting " + tokenType.getDescription() + ", instead got " + currentToken.type.getDescription());
     }
 
     private AST factor() {
@@ -58,18 +62,22 @@ public class Parser {
         }
 
         while (currentToken.type.is(LPAREN)) {
-            Set<AST> arguments = arguments();
+            List<AST> arguments = arguments();
             result = new FuncCall(currentToken, result, arguments);
         }
 
         return result;
     }
 
-    private Set<AST> arguments() {
-        Set<AST> arguments = new HashSet<>();
+    private List<AST> arguments() {
+        List<AST> arguments = new ArrayList<>();
         eat(LPAREN);
-        while (!currentToken.type.is(RPAREN)) {
+        if (!currentToken.type.is(RPAREN)) {
             arguments.add(expr());
+            while (currentToken.type.is(COMMA)) {
+                eat(COMMA);
+                arguments.add(expr());
+            }
         }
         eat(RPAREN);
         return arguments;
@@ -130,15 +138,22 @@ public class Parser {
     }
 
     private AST funcDeclaration() {
+        Token token = currentToken;
         eat(FUNCTION);
-        Set<Var> arguments = new HashSet<>();
+        List<Var> arguments = new ArrayList<>();
         CompoundStatement compoundStatement;
         if (currentToken.type.is(ID)) {
             arguments.add(var());
             while (currentToken.type.is(COMMA)) {
                 eat(COMMA);
                 if (currentToken.type.is(ID)) {
-                    arguments.add(var());
+                    Var var = var();
+                    for (Var v : arguments) {
+                        if (var.getName().equals(v.getName())) {
+                            error("argument of name '" + var.getName() + "' has already been declared for this function");
+                        }
+                    }
+                    arguments.add(var);
                 } else {
                     error();
                 }
@@ -146,7 +161,7 @@ public class Parser {
         }
         if (currentToken.type.is(LCBRACE)) {
             compoundStatement = compoundStatement();
-            return new FuncDeclaration(currentToken, compoundStatement, arguments);
+            return new FuncDeclaration(token, compoundStatement, arguments);
         } else if (!currentToken.type.is(LCBRACE)) {
             error();
         }
@@ -156,8 +171,8 @@ public class Parser {
 
     private CompoundStatement compoundStatement() {
         eat(LCBRACE);
-        Set<AST> statements = new HashSet<>();
-        while (!currentToken.type.is(RCBRACE)) {
+        List<AST> statements = new ArrayList<>();
+        while (!currentToken.type.is(RCBRACE, EOF)) {
             statements.add(statement());
         }
         eat(RCBRACE);
@@ -174,7 +189,7 @@ public class Parser {
         Program program;
         Token token = currentToken;
 
-        Set<AST> statements = new HashSet<>();
+        List<AST> statements = new ArrayList<>();
 
         while (!currentToken.type.is(EOF)) {
             statements.add(statement());
