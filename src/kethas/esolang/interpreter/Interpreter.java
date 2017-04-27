@@ -9,6 +9,7 @@ import static kethas.esolang.interpreter.Obj.NULL;
 
 /**
  * Created by Kethas on 14/04/2017.
+ * TODO: Fix closures: variables outside of function scope are not available unless part of another function scope.
  */
 public class Interpreter extends NodeVisitor{
 
@@ -40,6 +41,7 @@ public class Interpreter extends NodeVisitor{
             }
         }
     };
+
 
     private Stack<Map<String, Obj>> stack = new Stack<>();
 
@@ -123,10 +125,7 @@ public class Interpreter extends NodeVisitor{
             return result;
         } else if (o.getValue() instanceof ExternalFunction) {
 
-            //doesn't even get here
-            //what the fuck is even happening?
-            //TODO: Fix this somehow. I don't even know what the problem is.
-            System.out.println("external function called");
+            //FIXED! Oh my god I am SUCH an idiot.
 
             List<Obj> args = new ArrayList<>();
 

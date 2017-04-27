@@ -1,6 +1,7 @@
 package kethas.esolang.lexer;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -8,15 +9,28 @@ import java.util.Map;
  */
 public class Lexer {
 
-    private final String text;
+    private final List<String> text;
     private final Map<String, TokenType> keyWords = new HashMap<>();
+
+    private int line;
     private int pos;
     private char currentChar;
+    private String currentLine;
 
-    public Lexer(String text) {
+    public Lexer(List<String> text) {
         this.text = text;
+
+        for (int i = 0; i < this.text.size(); i++) {
+            this.text.set(i, this.text.get(i) + "\n");
+        }
+
+        this.text.add("\n");
         pos = 0;
-        currentChar = pos > text.length() - 1 ? '\0' : text.charAt(pos);
+        line = 0;
+
+        currentLine = text.get(line);
+
+        currentChar = pos > currentLine.length() - 1 ? '\0' : currentLine.charAt(pos);
 
         keyWords.put("lambda", TokenType.FUNCTION);
         keyWords.put("fun", TokenType.FUNCTION);
@@ -25,27 +39,31 @@ public class Lexer {
     }
 
     private int getLine(){
-        String t = text.substring(0, pos);
-        t = t.replaceAll("[^\\n]", "");
-        return t.length() + 1;
+        return line + 1;
     }
 
     private int getColumn(){
-        String t = text.substring(0, pos);
-        t = t.substring(t.lastIndexOf('\n') + 1);
-        return t.length() + 1;
+        return pos + 1;
     }
 
     private void advance(){
         pos++;
-        if (pos > text.length() - 1)
-            currentChar = '\0';
-        else
-            currentChar = text.charAt(pos);
+        if (pos > currentLine.length() - 1) {
+            line++;
+            pos = 0;
+            if (line > text.size() - 1) {
+                line--;
+                currentChar = '\0';
+            } else {
+                currentLine = text.get(line);
+                currentChar = currentLine.charAt(pos);
+            }
+        } else
+            currentChar = currentLine.charAt(pos);
     }
 
     private void error(){
-        throw new RuntimeException("Unexpected character '" + (int) currentChar + "' at " + getColumn() + ":" + getColumn() + "");
+        throw new RuntimeException("Unexpected character '" + Character.getName(currentChar) + "' at " + getLine() + ":" + getColumn());
     }
 
     private void skipComment(){
@@ -67,7 +85,7 @@ public class Lexer {
         return result;
     }
 
-    private String parseEscape(){
+    private String parseEscape() {
         advance();
 
         String result = "";
@@ -87,7 +105,7 @@ public class Lexer {
     private String string(){
         advance();
         String result = "";
-        while (currentChar != '"' & !(currentChar == '\n' || currentChar == '\r')) {
+        while (currentChar != '"' && currentChar != '\n' && currentChar != '\r') {
             if (currentChar == '\\'){
                 result += parseEscape();
                 continue;
@@ -120,8 +138,12 @@ public class Lexer {
 
     public Token peekNextToken() {
         int p = pos;
+        int l = line;
         Token token = getNextToken();
+        line = l;
+        currentLine = text.get(line);
         pos = p;
+        currentChar = currentLine.charAt(pos);
         return token;
     }
 
@@ -148,45 +170,46 @@ public class Lexer {
             if (isAlphabetic() || currentChar == '_')
                 return _id();
 
-            if (currentChar == '+') {
-                advance();
-                return new Token(TokenType.PLUS, "+", getLine(), getColumn());
-            } else if (currentChar == '-') {
-                advance();
-                return new Token(TokenType.MINUS, "-", getLine(), getColumn());
-            } else if (currentChar == '*') {
-                advance();
-                return new Token(TokenType.MUL, "*", getLine(), getColumn());
-            } else if (currentChar == '/') {
-                advance();
-                return new Token(TokenType.DIV, "/", getLine(), getColumn());
-            } else if (currentChar == '(') {
-                advance();
-                return new Token(TokenType.LPAREN, "(", getLine(), getColumn());
-            } else if (currentChar == ')') {
-                advance();
-                return new Token(TokenType.RPAREN, ")", getLine(), getColumn());
-            } else if (currentChar == '{') {
-                advance();
-                return new Token(TokenType.LCBRACE, "{", getLine(), getColumn());
-            } else if (currentChar == '}') {
-                advance();
-                return new Token(TokenType.RCBRACE, "}", getLine(), getColumn());
-            } else if (currentChar == 'λ') {
-                advance();
-                return new Token(TokenType.FUNCTION, "λ", getLine(), getColumn());
-            } else if (currentChar == '=') {
-                advance();
-                return new Token(TokenType.ASSIGN, "=", getLine(), getColumn());
-            } else if (currentChar == ',') {
-                advance();
-                return new Token(TokenType.COMMA, ",", getLine(), getColumn());
-            } else if (currentChar == ':') {
-                advance();
-                return new Token(TokenType.COLON, ":", getLine(), getColumn());
-            } else if (currentChar == ';') {
-                advance();
-                return new Token(TokenType.SEMI, ";", getLine(), getColumn());
+            switch (currentChar) {
+                case '+':
+                    advance();
+                    return new Token(TokenType.PLUS, "+", getLine(), getColumn());
+                case '-':
+                    advance();
+                    return new Token(TokenType.MINUS, "-", getLine(), getColumn());
+                case '*':
+                    advance();
+                    return new Token(TokenType.MUL, "*", getLine(), getColumn());
+                case '/':
+                    advance();
+                    return new Token(TokenType.DIV, "/", getLine(), getColumn());
+                case '(':
+                    advance();
+                    return new Token(TokenType.LPAREN, "(", getLine(), getColumn());
+                case ')':
+                    advance();
+                    return new Token(TokenType.RPAREN, ")", getLine(), getColumn());
+                case '{':
+                    advance();
+                    return new Token(TokenType.LCBRACE, "{", getLine(), getColumn());
+                case '}':
+                    advance();
+                    return new Token(TokenType.RCBRACE, "}", getLine(), getColumn());
+                case 'λ':
+                    advance();
+                    return new Token(TokenType.FUNCTION, "λ", getLine(), getColumn());
+                case '=':
+                    advance();
+                    return new Token(TokenType.ASSIGN, "=", getLine(), getColumn());
+                case ',':
+                    advance();
+                    return new Token(TokenType.COMMA, ",", getLine(), getColumn());
+                case ':':
+                    advance();
+                    return new Token(TokenType.COLON, ":", getLine(), getColumn());
+                case ';':
+                    advance();
+                    return new Token(TokenType.SEMI, ";", getLine(), getColumn());
             }
 
             error();
