@@ -58,7 +58,7 @@ public class Obj {
         } else if (value instanceof Integer) {
             return (int) value != 0;
         } else if (value instanceof String) {
-            return !((String) value).isEmpty();
+            return !((String) value).isEmpty() && !value.equals("false");
         } else if (value instanceof Function) {
             return true;
         }

@@ -1,11 +1,18 @@
-factor      : INTEGER
+value_base  : INTEGER
             | STRING
             | var
             | func_d
             | null
             | func_call
-            | (PLUS | MINUS) factor
+            | if_s
+            | (PLUS | MINUS | NOT) value_base
             | LPAREN expr RPAREN
+
+equals_op   : value_base ((EQUALS | NOT) value_base)*
+
+binary_and  : equals_op ((AND | NAND) equals_op)*
+
+binary_or   : binary_and ((OR | NOR) binary_and)*
 
 term        : factor ((MUL | DIV) factor)*
 
@@ -31,11 +38,17 @@ arguments   : LPAREN expr_l RPAREN
 expr_l      : expr (COMMA expr)*
             | EMPTY
 
-
 statement_c : LCBRACE statement_l RCBRACE
+            | (COLON | ARROW_R) expr
 
 return_s    : RETURN expr
             | RETURN
+
+if_s        : IF expr statement_c (elseif_s)* (else_s)?
+
+else_s      : ELSE statement_c
+
+elseif_s    : ELSEIF expr statement_c
 
 statement_l : statement
             | statement_l statement
@@ -43,6 +56,7 @@ statement_l : statement
 statement   : expr
             | var_assign
             | return_s
+            | if_s
             | EMPTY
             | statement SEMI
 
@@ -99,27 +113,23 @@ DOLLAR      : $
 
 ASSIGN      : =
 
-EQUALS      : ==
+ARROW_R     : ->
 
-NOT_EQUALS  : !=
+EQUALS      : ==
 
 RABRACKET   : <
 
 LABRACKET   : >
 
-GRT_EQUAL   : >=
+NOT         : not
 
-LSS_EQUAL   : <=
+AND         : and
 
-NOT         : !
+OR          : or
 
-AND         : &
+NAND        : nand
 
-OR          : |
-
-NAND        : !&
-
-NOR         : !|
+NOR         : nor
 
 COMMA       : ,
 
@@ -132,5 +142,11 @@ SEMI        : ;
 EMPTY       :
 
 FUNCTION    : fun | lambda | λ
+
+IF          : if
+
+ELSE        : else
+
+ELSEIF      : elseif
 
 NULL        : null

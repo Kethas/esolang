@@ -1,0 +1,3 @@
+f = fun{a = 1}
+
+println(f, "->", f())

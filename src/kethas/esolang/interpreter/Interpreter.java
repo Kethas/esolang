@@ -9,7 +9,7 @@ import static kethas.esolang.interpreter.Obj.NULL;
 
 /**
  * Created by Kethas on 14/04/2017.
- * TODO: Fix closures: variables outside of function scope are not available unless part of another function scope.
+ * TODO: Fix closures: variables outside of function scope are weird.
  */
 public class Interpreter extends NodeVisitor{
 
@@ -42,7 +42,6 @@ public class Interpreter extends NodeVisitor{
         }
     };
 
-
     private Stack<Map<String, Obj>> stack = new Stack<>();
 
     public Interpreter() {
@@ -68,11 +67,12 @@ public class Interpreter extends NodeVisitor{
     }
 
     public Obj visitVarAssign(VarAssign node) {
-        Obj prevValue = stack.lastElement().get(node.getVar().getName());
 
         stack.lastElement().put(node.getVar().getName(), visitNode(node.getValue()));
 
-        return NULL;
+        Obj value = stack.lastElement().get(node.getVar().getName());
+
+        return value;
     }
 
     public Obj visitNull(Null node) {
@@ -156,7 +156,28 @@ public class Interpreter extends NodeVisitor{
         return visitNode(node.getNode());
     }
 
-    public void visitProgram(Program node) {
+    public Obj visitIf(If node) {
+
+        Obj condition = visitNode(node.getCondition());
+
+        if (condition.isTruthy()) {
+            return visitNode(node.getStatements());
+        } else {
+            for (ElseIf elseIf : node.getElseIfs()) {
+                if (visitNode(elseIf.getCondition()).isTruthy()) {
+                    return visitNode(elseIf.getStatements());
+                }
+            }
+
+            if (node.getElse() != null) {
+                return visitNode(node.getElse().getStatements());
+            }
+        }
+
+        return NULL;
+    }
+
+    public Obj visitProgram(Program node) {
         try {
             Obj result;
             for (AST ast : node.getStatements()) {
@@ -170,6 +191,8 @@ public class Interpreter extends NodeVisitor{
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
+
+        return NULL;
     }
 
     public Obj visitNum(Num node){
@@ -186,6 +209,60 @@ public class Interpreter extends NodeVisitor{
                 return visitNode(node.getLeft()).multiply(visitNode(node.getRight()));
             case DIV:
                 return visitNode(node.getLeft()).divide(visitNode(node.getRight()));
+            case AND:
+                Obj andLeft = visitNode(node.getLeft());
+                Obj andRight;
+                if (andLeft.isTruthy()) {
+                    if ((andRight = visitNode(node.getRight())).isTruthy())
+                        return new Obj(1);
+                }
+
+                return new Obj(0);
+            case NAND:
+                Obj nandLeft = visitNode(node.getLeft());
+                Obj nandRight;
+                if (!nandLeft.isTruthy()) {
+                    if (!(nandRight = visitNode(node.getRight())).isTruthy())
+                        return new Obj(1);
+                }
+
+                return new Obj(0);
+            case OR:
+                Obj orLeft = visitNode(node.getLeft());
+
+                if (orLeft.isTruthy()) {
+                    return orLeft;
+                } else {
+                    Obj orRight = visitNode(node.getRight());
+                    if (orRight.isTruthy()) {
+                        return orRight;
+                    } else {
+                        return orLeft;
+                    }
+                }
+            case NOR:
+                Obj norLeft = visitNode(node.getLeft());
+
+                if (!norLeft.isTruthy()) {
+                    return norLeft;
+                } else {
+                    Obj norRight = visitNode(node.getRight());
+                    if (!norRight.isTruthy()) {
+                        return norRight;
+                    } else {
+                        return norLeft;
+                    }
+                }
+            case EQUALS:
+                Obj equalsLeft = visitNode(node.getLeft());
+                Obj equalsRight = visitNode(node.getRight());
+
+                return equalsLeft.getValue().equals(equalsRight.getValue()) ? new Obj(1) : new Obj(0);
+            case NOT:
+                Obj notLeft = visitNode(node.getLeft());
+                Obj notRight = visitNode(node.getRight());
+
+                return !notLeft.getValue().equals(notRight.getValue()) ? new Obj(1) : new Obj(0);
         }
 
         return NULL;
@@ -194,9 +271,16 @@ public class Interpreter extends NodeVisitor{
     public Obj visitUnaryOp(UnaryOp node){
         Obj result = visitNode(node.getNode());
 
-        if (node.getToken().type == TokenType.MINUS){
+        if (node.getToken().type.is(TokenType.MINUS)) {
             result = result.multiply(new Obj(-1));
+        } else if (node.getToken().type.is(TokenType.NOT)) {
+            boolean truthy = result.isTruthy();
+            if (truthy)
+                result = new Obj(0);
+            else
+                result = new Obj(1);
         }
+
 
         return result;
     }

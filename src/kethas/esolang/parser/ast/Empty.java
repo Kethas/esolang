@@ -7,7 +7,7 @@ import kethas.esolang.lexer.Token;
  */
 public class Empty extends AST {
 
-    protected Empty(Token token) {
+    public Empty(Token token) {
         super(token);
     }
 

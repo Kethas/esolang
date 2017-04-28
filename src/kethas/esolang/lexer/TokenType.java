@@ -22,8 +22,16 @@ public enum TokenType {
     RETURN("'return' keyword"),
     SEMI("';'"),
     NULL("'null' keyword"),
-    FUNCTION("'fun' or 'lambda' or 'λ' keyword"),
-    EOF("end of file");
+    FUNCTION("'fun', 'lambda' or 'λ' keyword"),
+    IF("'if' keyword"),
+    ELSE("'else' keyword"),
+    ELSEIF("'elseif' keyword"),
+    NOT("'not' keyword"),
+    AND("'and' keyword"),
+    OR("'or' keyword"),
+    NAND("'nand' keyword"),
+    NOR("'nor' keyword"),
+    EOF("end of file"), ARROW_R, EQUALS;
 
     private final String description;
 

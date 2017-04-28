@@ -33,6 +33,14 @@ public class Lexer {
         currentChar = pos > currentLine.length() - 1 ? '\0' : currentLine.charAt(pos);
 
         keyWords.put("lambda", TokenType.FUNCTION);
+        keyWords.put("if", TokenType.IF);
+        keyWords.put("else", TokenType.ELSE);
+        keyWords.put("elseif", TokenType.ELSEIF);
+        keyWords.put("not", TokenType.NOT);
+        keyWords.put("and", TokenType.AND);
+        keyWords.put("nand", TokenType.NAND);
+        keyWords.put("or", TokenType.OR);
+        keyWords.put("nor", TokenType.NOR);
         keyWords.put("fun", TokenType.FUNCTION);
         keyWords.put("return", TokenType.RETURN);
         keyWords.put("null", TokenType.NULL);
@@ -176,6 +184,10 @@ public class Lexer {
                     return new Token(TokenType.PLUS, "+", getLine(), getColumn());
                 case '-':
                     advance();
+                    if (currentChar == '>') {
+                        advance();
+                        return new Token(TokenType.ARROW_R, "->", getLine(), getColumn());
+                    }
                     return new Token(TokenType.MINUS, "-", getLine(), getColumn());
                 case '*':
                     advance();
@@ -200,6 +212,10 @@ public class Lexer {
                     return new Token(TokenType.FUNCTION, "λ", getLine(), getColumn());
                 case '=':
                     advance();
+                    if (currentChar == '=') {
+                        advance();
+                        return new Token(TokenType.EQUALS, "==", getLine(), getColumn());
+                    }
                     return new Token(TokenType.ASSIGN, "=", getLine(), getColumn());
                 case ',':
                     advance();

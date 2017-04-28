@@ -39,7 +39,7 @@ public class Parser {
             error("expecting " + tokenType.getDescription() + ", instead got " + currentToken.type.getDescription());
     }
 
-    private AST factor() {
+    private AST value_base() {
         Token token = currentToken;
         AST result = new Null(token);
         if (token.type.is(INTEGER)) {
@@ -52,6 +52,8 @@ public class Parser {
             result = var();
         } else if (token.type.is(FUNCTION)) {
             result = funcDeclaration();
+        } else if (token.type.is(IF)) {
+            result = ifStatement();
         } else if (token.type.is(NULL)) {
             result = _null();
         } else if (token.type.is(LPAREN)) {
@@ -59,6 +61,10 @@ public class Parser {
             AST node = expr();
             eat(RPAREN);
             result = node;
+        } else if (token.type.is(PLUS, MINUS, NOT)) {
+            eat(token.type);
+            AST node = value_base();
+            result = new UnaryOp(token, node);
         }
 
         while (currentToken.type.is(LPAREN)) {
@@ -69,26 +75,45 @@ public class Parser {
         return result;
     }
 
-    private List<AST> arguments() {
-        List<AST> arguments = new ArrayList<>();
-        eat(LPAREN);
-        if (!currentToken.type.is(RPAREN)) {
-            arguments.add(expr());
-            while (currentToken.type.is(COMMA)) {
-                eat(COMMA);
-                arguments.add(expr());
-            }
+    private AST equals_op() {
+        AST node = value_base();
+        while (currentToken.type.is(EQUALS, NOT)) {
+            Token token = currentToken;
+            eat(currentToken.type);
+            node = new BinaryOp(token, node, value_base());
         }
-        eat(RPAREN);
-        return arguments;
+
+        return node;
+    }
+
+    private AST binary_and() {
+        AST node = equals_op();
+        while (currentToken.type.is(AND, NAND)) {
+            Token token = currentToken;
+            eat(currentToken.type);
+            node = new BinaryOp(token, node, equals_op());
+        }
+
+        return node;
+    }
+
+    private AST binary_or() {
+        AST node = binary_and();
+        while (currentToken.type.is(OR, NOR)) {
+            Token token = currentToken;
+            eat(currentToken.type);
+            node = new BinaryOp(token, node, binary_and());
+        }
+
+        return node;
     }
 
     private AST term() {
-        AST node = factor();
+        AST node = binary_or();
         while (currentToken.type.is(MUL, DIV)){
             Token token = currentToken;
             eat(currentToken.type);
-            node = new BinaryOp(token, node, factor());
+            node = new BinaryOp(token, node, binary_or());
         }
 
         return node;
@@ -105,12 +130,45 @@ public class Parser {
         return node;
     }
 
+    private AST ifStatement() {
+        Token token = currentToken;
+        eat(IF);
+        AST condition = expr();
+        CompoundStatement statements = compoundStatement();
+        List<ElseIf> elseIfs = new ArrayList<>();
+
+        Else elseNode = null;
+
+        while (currentToken.type.is(ELSEIF)) {
+            Token elseIfToken = currentToken;
+            eat(ELSEIF);
+
+            AST elseIfCondition = expr();
+            CompoundStatement elseIfStatements = compoundStatement();
+
+            elseIfs.add(new ElseIf(elseIfToken, elseIfCondition, elseIfStatements));
+        }
+
+        if (currentToken.type.is(ELSE)) {
+            Token elseToken = currentToken;
+            eat(ELSE);
+
+            CompoundStatement elseStatements = compoundStatement();
+
+            elseNode = new Else(elseToken, elseStatements);
+        }
+
+        return new If(token, condition, statements, elseIfs, elseNode);
+    }
+
     private AST statement(){
         AST result;
         if (currentToken.type.is(RETURN)) {
             Token token = currentToken;
             eat(RETURN);
             result = new Return(token, expr());
+        } else if (currentToken.type.is(IF)) {
+            result = ifStatement();
         } else if (currentToken.type.is(ID)) {
             if (lexer.peekNextToken().type.is(ASSIGN)) {
                 Var var = var();
@@ -120,6 +178,8 @@ public class Parser {
             } else {
                 result = expr();
             }
+        } else if (currentToken.type.is(SEMI)) {
+            result = new Null(currentToken);
         } else {
             result = expr();
         }
@@ -159,24 +219,44 @@ public class Parser {
                 }
             }
         }
-        if (currentToken.type.is(LCBRACE)) {
-            compoundStatement = compoundStatement();
-            return new FuncDeclaration(token, compoundStatement, arguments);
-        } else if (!currentToken.type.is(LCBRACE)) {
-            error();
-        }
+        compoundStatement = compoundStatement();
+        return new FuncDeclaration(token, compoundStatement, arguments);
+    }
 
-        return new Null(currentToken);
+    private List<AST> arguments() {
+        List<AST> arguments = new ArrayList<>();
+        eat(LPAREN);
+        if (!currentToken.type.is(RPAREN)) {
+            arguments.add(expr());
+            while (currentToken.type.is(COMMA)) {
+                eat(COMMA);
+                arguments.add(expr());
+            }
+        }
+        eat(RPAREN);
+        return arguments;
     }
 
     private CompoundStatement compoundStatement() {
-        eat(LCBRACE);
-        List<AST> statements = new ArrayList<>();
-        while (!currentToken.type.is(RCBRACE, EOF)) {
-            statements.add(statement());
+        if (currentToken.type.is(LCBRACE)) {
+            Token token = currentToken;
+            eat(LCBRACE);
+            List<AST> statements = new ArrayList<>();
+            while (!currentToken.type.is(RCBRACE, EOF)) {
+                statements.add(statement());
+            }
+            eat(RCBRACE);
+            return new CompoundStatement(token, statements);
+        } else if (currentToken.type.is(COLON, ARROW_R)) {
+            Token token = currentToken;
+            eat(currentToken.type);
+            List<AST> statement = new ArrayList<>();
+            statement.add(expr());
+            return new CompoundStatement(token, statement);
         }
-        eat(RCBRACE);
-        return new CompoundStatement(currentToken, statements);
+
+        error();
+        return new CompoundStatement(currentToken, new ArrayList<>());
     }
 
     private Var var() {
