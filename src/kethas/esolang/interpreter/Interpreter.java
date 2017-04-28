@@ -101,7 +101,13 @@ public class Interpreter extends NodeVisitor{
 
             for (int i = 0; i < func.getFuncDeclaration().getArguments().size(); i++) {
                 Var var = argumentDec.next();
-                Obj obj = visitNode(arguments.next());
+                Obj obj;
+
+                try {
+                    obj = visitNode(arguments.next());
+                } catch (ReturnException e) {
+                    obj = e.getObject();
+                }
 
                 funcLocals.put(var.getName(), obj);
             }
@@ -157,7 +163,6 @@ public class Interpreter extends NodeVisitor{
     }
 
     public Obj visitIf(If node) {
-
         Obj condition = visitNode(node.getCondition());
 
         if (condition.isTruthy()) {
@@ -173,7 +178,6 @@ public class Interpreter extends NodeVisitor{
                 return visitNode(node.getElse().getStatements());
             }
         }
-
         return NULL;
     }
 
@@ -200,6 +204,8 @@ public class Interpreter extends NodeVisitor{
     }
 
     public Obj visitBinaryOp(BinaryOp node) {
+        Obj left, right;
+
         switch (node.getToken().type) {
             case PLUS:
                 return visitNode(node.getLeft()).add(visitNode(node.getRight()));
@@ -210,59 +216,73 @@ public class Interpreter extends NodeVisitor{
             case DIV:
                 return visitNode(node.getLeft()).divide(visitNode(node.getRight()));
             case AND:
-                Obj andLeft = visitNode(node.getLeft());
-                Obj andRight;
-                if (andLeft.isTruthy()) {
-                    if ((andRight = visitNode(node.getRight())).isTruthy())
+                left = visitNode(node.getLeft());
+                if (left.isTruthy()) {
+                    if ((right = visitNode(node.getRight())).isTruthy())
                         return new Obj(1);
                 }
 
                 return new Obj(0);
             case NAND:
-                Obj nandLeft = visitNode(node.getLeft());
-                Obj nandRight;
-                if (!nandLeft.isTruthy()) {
-                    if (!(nandRight = visitNode(node.getRight())).isTruthy())
+                left = visitNode(node.getLeft());
+                if (!left.isTruthy()) {
+                    if (!(right = visitNode(node.getRight())).isTruthy())
                         return new Obj(1);
                 }
 
                 return new Obj(0);
             case OR:
-                Obj orLeft = visitNode(node.getLeft());
+                left = visitNode(node.getLeft());
 
-                if (orLeft.isTruthy()) {
-                    return orLeft;
+                if (left.isTruthy()) {
+                    return left;
                 } else {
-                    Obj orRight = visitNode(node.getRight());
-                    if (orRight.isTruthy()) {
-                        return orRight;
+                    right = visitNode(node.getRight());
+                    if (right.isTruthy()) {
+                        return right;
                     } else {
-                        return orLeft;
+                        return left;
                     }
                 }
             case NOR:
-                Obj norLeft = visitNode(node.getLeft());
+                left = visitNode(node.getLeft());
 
-                if (!norLeft.isTruthy()) {
-                    return norLeft;
+                if (!left.isTruthy()) {
+                    return left;
                 } else {
-                    Obj norRight = visitNode(node.getRight());
-                    if (!norRight.isTruthy()) {
-                        return norRight;
+                    right = visitNode(node.getRight());
+                    if (!right.isTruthy()) {
+                        return right;
                     } else {
-                        return norLeft;
+                        return left;
                     }
                 }
             case EQUALS:
-                Obj equalsLeft = visitNode(node.getLeft());
-                Obj equalsRight = visitNode(node.getRight());
+                left = visitNode(node.getLeft());
+                right = visitNode(node.getRight());
 
-                return equalsLeft.getValue().equals(equalsRight.getValue()) ? new Obj(1) : new Obj(0);
+                return left.getValue().equals(right.getValue()) ? new Obj(1) : new Obj(0);
             case NOT:
-                Obj notLeft = visitNode(node.getLeft());
-                Obj notRight = visitNode(node.getRight());
+                left = visitNode(node.getLeft());
+                right = visitNode(node.getRight());
 
-                return !notLeft.getValue().equals(notRight.getValue()) ? new Obj(1) : new Obj(0);
+                return !left.getValue().equals(right.getValue()) ? new Obj(1) : new Obj(0);
+            case LABRACKET:
+                left = visitNode(node.getLeft());
+                right = visitNode(node.getRight());
+
+                if (left.getValue() instanceof Integer && right.getValue() instanceof Integer) {
+                    return (Integer) left.getValue() < (Integer) right.getValue() ? new Obj(1) : new Obj(0);
+                }
+                return NULL;
+            case RABRACKET:
+                left = visitNode(node.getLeft());
+                right = visitNode(node.getRight());
+
+                if (left.getValue() instanceof Integer && right.getValue() instanceof Integer) {
+                    return (Integer) left.getValue() > (Integer) right.getValue() ? new Obj(1) : new Obj(0);
+                }
+                return NULL;
         }
 
         return NULL;

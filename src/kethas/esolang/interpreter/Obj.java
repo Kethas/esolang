@@ -23,10 +23,10 @@ public class Obj {
     }
 
     public Obj add(Obj with) {
-        if (value instanceof String) {
-            return new Obj(value + with.toString());
-        } else if (value instanceof Integer && with.value instanceof Integer) {
-            return new Obj((Integer) value + (Integer) with.value);
+        if (value instanceof String || with.getValue() instanceof String) {
+            return new Obj(value.toString() + with.getValue().toString());
+        } else if (value instanceof Integer && with.getValue() instanceof Integer) {
+            return new Obj((Integer) value + (Integer) with.getValue());
         }
         return NULL;
     }
@@ -41,6 +41,18 @@ public class Obj {
     public Obj multiply(Obj with) {
         if (value instanceof Integer && with.value instanceof Integer) {
             return new Obj((Integer) value * (Integer) with.value);
+        } else if (value instanceof String && with.value instanceof Integer) {
+            String s = "";
+            for (int i = 0; i < (Integer) with.value; i++) {
+                s += value;
+            }
+            return new Obj(s);
+        } else if (value instanceof Integer && with.value instanceof String) {
+            String s = "";
+            for (int i = 0; i < (Integer) value; i++) {
+                s += with.value;
+            }
+            return new Obj(s);
         }
         return NULL;
     }

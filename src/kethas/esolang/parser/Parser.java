@@ -67,20 +67,33 @@ public class Parser {
             result = new UnaryOp(token, node);
         }
 
-        while (currentToken.type.is(LPAREN)) {
-            List<AST> arguments = arguments();
-            result = new FuncCall(currentToken, result, arguments);
+        while (currentToken.type.is(LPAREN)) { //preparing for [] and . operators
+            if (currentToken.type.is(LPAREN)) {
+                List<AST> arguments = arguments();
+                result = new FuncCall(currentToken, result, arguments);
+            }
         }
 
         return result;
     }
 
-    private AST equals_op() {
+    private AST gt_lt_op() {
         AST node = value_base();
-        while (currentToken.type.is(EQUALS, NOT)) {
+        while (currentToken.type.is(LABRACKET, RABRACKET)) {
             Token token = currentToken;
             eat(currentToken.type);
             node = new BinaryOp(token, node, value_base());
+        }
+
+        return node;
+    }
+
+    private AST equals_op() {
+        AST node = gt_lt_op();
+        while (currentToken.type.is(EQUALS, NOT)) {
+            Token token = currentToken;
+            eat(currentToken.type);
+            node = new BinaryOp(token, node, gt_lt_op());
         }
 
         return node;

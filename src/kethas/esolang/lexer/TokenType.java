@@ -31,7 +31,7 @@ public enum TokenType {
     OR("'or' keyword"),
     NAND("'nand' keyword"),
     NOR("'nor' keyword"),
-    EOF("end of file"), ARROW_R, EQUALS;
+    EOF("end of file"), ARROW_R, EQUALS, LABRACKET, RABRACKET;
 
     private final String description;
 

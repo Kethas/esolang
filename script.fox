@@ -1,3 +1,8 @@
-f = fun{a = 1}
 
-println(f, "->", f())
+
+f = fun x:
+    if x < 1 -> 1
+    else -> x + f(x - 1)
+
+
+println(f(3))

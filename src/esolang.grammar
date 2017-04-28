@@ -3,12 +3,14 @@ value_base  : INTEGER
             | var
             | func_d
             | null
-            | func_call
+            | value_base (arguments)*
             | if_s
             | (PLUS | MINUS | NOT) value_base
             | LPAREN expr RPAREN
 
-equals_op   : value_base ((EQUALS | NOT) value_base)*
+gt_lt_op    : value_base ((LABRACKET | RABRACKET) value_base)*
+
+equals_op   : gl_lt_op ((EQUALS | NOT) gl_lt_op)*
 
 binary_and  : equals_op ((AND | NAND) equals_op)*
 
@@ -30,8 +32,6 @@ func_d      : FUNCTION argument_d statement_c
 
 var_l       : var (COMMA var)*
             | EMPTY
-
-func_call   : expr arguments
 
 arguments   : LPAREN expr_l RPAREN
 
@@ -117,9 +117,9 @@ ARROW_R     : ->
 
 EQUALS      : ==
 
-RABRACKET   : <
+LABRACKET   : <
 
-LABRACKET   : >
+RABRACKET   : >
 
 NOT         : not
 

@@ -226,6 +226,12 @@ public class Lexer {
                 case ';':
                     advance();
                     return new Token(TokenType.SEMI, ";", getLine(), getColumn());
+                case '<':
+                    advance();
+                    return new Token(TokenType.LABRACKET, "<", getLine(), getColumn());
+                case '>':
+                    advance();
+                    return new Token(TokenType.RABRACKET, ">", getLine(), getColumn());
             }
 
             error();

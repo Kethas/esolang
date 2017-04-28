@@ -34,9 +34,11 @@ public class Function {
         for (Var var : funcDeclaration.getArguments()) {
             args += var.getName() + ", ";
         }
-        if (!args.isEmpty())
+        if (!args.isEmpty()) {
             args = args.substring(0, args.length() - 2);
+            args += " ";
+        }
 
-        return "λ " + args + " { ... }";
+        return "λ " + args + "{ ... }";
     }
 }
