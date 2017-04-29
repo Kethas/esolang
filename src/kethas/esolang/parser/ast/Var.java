@@ -11,7 +11,7 @@ public class Var extends AST {
         super(token);
     }
 
-    public String getName(){
+    public String getName() {
         return getToken().value;
     }
 

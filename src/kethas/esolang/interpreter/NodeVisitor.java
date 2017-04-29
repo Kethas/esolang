@@ -10,7 +10,7 @@ import java.lang.reflect.Method;
  */
 public class NodeVisitor {
 
-    public final Obj visitNode(AST node){
+    public final Obj visitNode(AST node) {
         Class<? extends NodeVisitor> clazz = getClass();
         Class<? extends AST> nodeClass = node.getClass();
         String methodName = String.format("visit%s", nodeClass.getSimpleName());
@@ -23,6 +23,8 @@ public class NodeVisitor {
         } catch (InvocationTargetException e) {
             if (e.getTargetException() instanceof ReturnException)
                 throw (ReturnException) e.getTargetException();
+            else
+                e.getTargetException().printStackTrace();
         }
         return new Obj(null);
     }

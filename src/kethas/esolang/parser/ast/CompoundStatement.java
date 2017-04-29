@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Created by Kethas on 17/04/2017.
  */
-public class CompoundStatement extends AST{
+public class CompoundStatement extends AST {
 
     private final List<AST> statements;
 

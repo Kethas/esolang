@@ -7,15 +7,31 @@ public class Obj {
 
     public static final Obj NULL = new Obj(null);
 
-    private final Object value;
+    private Object value;
+
+    private boolean constant = false;
+
+    private boolean reference = false;
 
     public Obj(Object value) {
         this.value = value;
     }
 
+    public Obj(Object value, boolean constant) {
+        this(value);
+        this.constant = constant;
+    }
+
     public Object getValue() {
         return value;
     }
+
+    public void setValue(Object value) {
+        if (isConstant())
+            return; //except when exceptions are implemented
+        this.value = value;
+    }
+
 
     @Override
     public String toString() {
@@ -78,4 +94,19 @@ public class Obj {
         return false;
     }
 
+    public boolean isConstant() {
+        return constant;
+    }
+
+    public void setConstant(boolean constant) {
+        this.constant = constant;
+    }
+
+    public boolean isReference() {
+        return reference;
+    }
+
+    public void setReference(boolean reference) {
+        this.reference = reference;
+    }
 }

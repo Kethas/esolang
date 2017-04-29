@@ -43,9 +43,9 @@ public enum TokenType {
         this.description = description;
     }
 
-    public boolean is(TokenType... others){
-        for (TokenType type : others){
-            if (this == type){
+    public boolean is(TokenType... others) {
+        for (TokenType type : others) {
+            if (this == type) {
                 return true;
             }
         }

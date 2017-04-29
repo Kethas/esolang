@@ -39,7 +39,7 @@ expr_l      : expr (COMMA expr)*
             | EMPTY
 
 statement_c : LCBRACE statement_l RCBRACE
-            | (COLON | ARROW_R) expr
+            | (COLON | ARROW_R) statement
 
 return_s    : RETURN expr
             | RETURN
@@ -56,7 +56,6 @@ statement_l : statement
 statement   : expr
             | var_assign
             | return_s
-            | if_s
             | EMPTY
             | statement SEMI
 

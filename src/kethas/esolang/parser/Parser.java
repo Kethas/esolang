@@ -19,7 +19,7 @@ public class Parser {
 
     private Lexer lexer;
 
-    public Parser(Lexer lexer){
+    public Parser(Lexer lexer) {
         this.lexer = lexer;
         currentToken = lexer.getNextToken();
     }
@@ -65,12 +65,14 @@ public class Parser {
             eat(token.type);
             AST node = value_base();
             result = new UnaryOp(token, node);
+        } else {
+            error();
         }
 
         while (currentToken.type.is(LPAREN)) { //preparing for [] and . operators
             if (currentToken.type.is(LPAREN)) {
                 List<AST> arguments = arguments();
-                result = new FuncCall(currentToken, result, arguments);
+                result = new FuncCall(token, result, arguments);
             }
         }
 
@@ -123,7 +125,7 @@ public class Parser {
 
     private AST term() {
         AST node = binary_or();
-        while (currentToken.type.is(MUL, DIV)){
+        while (currentToken.type.is(MUL, DIV)) {
             Token token = currentToken;
             eat(currentToken.type);
             node = new BinaryOp(token, node, binary_or());
@@ -134,7 +136,7 @@ public class Parser {
 
     private AST expr() {
         AST node = term();
-        while (currentToken.type.is(PLUS, MINUS)){
+        while (currentToken.type.is(PLUS, MINUS)) {
             Token token = currentToken;
             eat(currentToken.type);
             node = new BinaryOp(token, node, term());
@@ -174,14 +176,12 @@ public class Parser {
         return new If(token, condition, statements, elseIfs, elseNode);
     }
 
-    private AST statement(){
+    private AST statement() {
         AST result;
         if (currentToken.type.is(RETURN)) {
             Token token = currentToken;
             eat(RETURN);
             result = new Return(token, expr());
-        } else if (currentToken.type.is(IF)) {
-            result = ifStatement();
         } else if (currentToken.type.is(ID)) {
             if (lexer.peekNextToken().type.is(ASSIGN)) {
                 Var var = var();
@@ -256,7 +256,8 @@ public class Parser {
             eat(LCBRACE);
             List<AST> statements = new ArrayList<>();
             while (!currentToken.type.is(RCBRACE, EOF)) {
-                statements.add(statement());
+                AST s = statement();
+                statements.add(s);
             }
             eat(RCBRACE);
             return new CompoundStatement(token, statements);
@@ -264,7 +265,7 @@ public class Parser {
             Token token = currentToken;
             eat(currentToken.type);
             List<AST> statement = new ArrayList<>();
-            statement.add(expr());
+            statement.add(statement());
             return new CompoundStatement(token, statement);
         }
 

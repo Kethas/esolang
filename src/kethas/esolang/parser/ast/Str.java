@@ -12,7 +12,7 @@ public class Str extends AST {
         super(token);
     }
 
-    public String getValue(){
+    public String getValue() {
         return getToken().value;
     }
 }

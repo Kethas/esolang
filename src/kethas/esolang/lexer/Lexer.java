@@ -46,15 +46,15 @@ public class Lexer {
         keyWords.put("null", TokenType.NULL);
     }
 
-    private int getLine(){
+    private int getLine() {
         return line + 1;
     }
 
-    private int getColumn(){
+    private int getColumn() {
         return pos + 1;
     }
 
-    private void advance(){
+    private void advance() {
         pos++;
         if (pos > currentLine.length() - 1) {
             line++;
@@ -70,23 +70,23 @@ public class Lexer {
             currentChar = currentLine.charAt(pos);
     }
 
-    private void error(){
+    private void error() {
         throw new RuntimeException("Unexpected character '" + Character.getName(currentChar) + "' at " + getLine() + ":" + getColumn());
     }
 
-    private void skipComment(){
+    private void skipComment() {
         while (!(currentChar == '\n' || currentChar == '\r'))
             advance();
     }
 
-    private void skipWhitespace(){
+    private void skipWhitespace() {
         while (currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r')
             advance();
     }
 
-    private String integer(){
+    private String integer() {
         String result = "";
-        while (Character.isDigit(currentChar)){
+        while (Character.isDigit(currentChar)) {
             result += currentChar;
             advance();
         }
@@ -110,11 +110,11 @@ public class Lexer {
         return result;
     }
 
-    private String string(){
+    private String string() {
         advance();
         String result = "";
         while (currentChar != '"' && currentChar != '\n' && currentChar != '\r') {
-            if (currentChar == '\\'){
+            if (currentChar == '\\') {
                 result += parseEscape();
                 continue;
             }
@@ -127,7 +127,7 @@ public class Lexer {
         return result;
     }
 
-    private Token _id(){
+    private Token _id() {
         String id = "";
 
         while (isAlphabetic() || Character.isDigit(currentChar) || currentChar == '_') {
@@ -155,19 +155,19 @@ public class Lexer {
         return token;
     }
 
-    public Token getNextToken(){
+    public Token getNextToken() {
         while (currentChar != '\0') {
             if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r') {
                 skipWhitespace();
                 continue;
             }
 
-            if (currentChar == '#'){
+            if (currentChar == '#') {
                 skipComment();
                 continue;
             }
 
-            if (currentChar == '"'){
+            if (currentChar == '"') {
                 return new Token(TokenType.STRING, string(), getLine(), getColumn());
             }
 
