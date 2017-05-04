@@ -1,7 +1,6 @@
 package kethas.esolang;
 
 import kethas.esolang.interpreter.Interpreter;
-import kethas.esolang.interpreter.NodeVisitor;
 import kethas.esolang.interpreter.Obj;
 import kethas.esolang.lexer.Lexer;
 import kethas.esolang.parser.Parser;
@@ -17,8 +16,9 @@ import java.util.List;
  */
 public class Fox {
 
-    public static Obj interpret(List<String> contents) {
-        NodeVisitor interpreter = new Interpreter();
+    public static Obj interpret(List<String> contents, String path, String... args) {
+        Interpreter interpreter = new Interpreter(args);
+        interpreter.setPath(path);
 
         Lexer lexer = new Lexer(contents);
 
@@ -27,11 +27,11 @@ public class Fox {
         return interpreter.visitNode(parser.parse());
     }
 
-    public static Obj interpret(File file) {
-        return interpret(file.toPath());
+    public static Obj interpret(File file, String... args) {
+        return interpret(file.toPath(), args);
     }
 
-    public static Obj interpret(Path file) {
+    public static Obj interpret(Path file, String... args) {
 
 
         List<String> contents = null;
@@ -44,7 +44,7 @@ public class Fox {
 
         assert contents != null;
 
-        return interpret(contents);
+        return interpret(contents, file.toString(), args);
     }
 
 }

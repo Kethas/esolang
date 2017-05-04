@@ -20,13 +20,11 @@ term        : factor ((MUL | DIV) factor)*
 
 expr        : term ((PLUS | MINUS) term)*
 
-undefined   : UNDEFINED
-
 null        : NULL
 
 var         : ID
 
-var_assign  : var ASSIGN expr
+var_assign  : expr ASSIGN expr //LEFT OPERAND MUST BE VAR OR MEMBER
 
 func_d      : FUNCTION argument_d statement_c
 
@@ -42,7 +40,6 @@ statement_c : LCBRACE statement_l RCBRACE
             | (COLON | ARROW_R) statement
 
 return_s    : RETURN expr
-            | RETURN
 
 if_s        : IF expr statement_c (elseif_s)* (else_s)?
 
@@ -56,8 +53,7 @@ statement_l : statement
 statement   : expr
             | var_assign
             | return_s
-            | EMPTY
-            | statement SEMI
+            | statement SEMI*
 
 program     : statement_l
 
@@ -108,6 +104,10 @@ LCBRACE     : {
 
 RCBRACE     : }
 
+LSBRALCET   : [
+
+RSBRACKET   : ]
+
 DOLLAR      : $
 
 ASSIGN      : =
@@ -129,6 +129,8 @@ OR          : or
 NAND        : nand
 
 NOR         : nor
+
+DOT         : .
 
 COMMA       : ,
 

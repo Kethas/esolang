@@ -1,8 +1,14 @@
 package kethas.esolang.interpreter;
 
+import kethas.esolang.lexer.Lexer;
 import kethas.esolang.lexer.TokenType;
+import kethas.esolang.parser.Parser;
 import kethas.esolang.parser.ast.*;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.text.MessageFormat;
 import java.util.*;
 
@@ -32,7 +38,7 @@ public class Interpreter extends NodeVisitor {
                 println.invoke(args);
 
             Scanner s = new Scanner(System.in);
-            String in = s.nextLine();
+            String in = s.next();
 
             try {
                 int i = Integer.parseInt(in);
@@ -40,6 +46,160 @@ public class Interpreter extends NodeVisitor {
             } catch (NumberFormatException e) {
                 return new Obj(in);
             }
+        }
+    };
+
+    public static final ExternalFunction file_read = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 1)
+                return NULL;
+
+            Obj o = args.get(0);
+            if (o.getValue() instanceof String) {
+                File f = new File((String) o.getValue());
+                try {
+                    String contents = new String(Files.readAllBytes(f.toPath()));
+                    return new Obj(contents);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction file_write = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 2) {
+                return NULL;
+            }
+
+            Obj path = args.get(0);
+            Obj contents = args.get(1);
+
+            if (path.getValue() instanceof String) {
+                File f = new File((String) path.getValue());
+                if (f.isFile()) {
+                    f.delete();
+                    try {
+                        f.getParentFile().mkdirs();
+                        f.createNewFile();
+                        FileWriter w = new FileWriter(f);
+                        w.write(contents.toString());
+                        w.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction file_append = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 2) {
+                return NULL;
+            }
+
+            Obj path = args.get(0);
+            Obj contents = args.get(1);
+
+            if (path.getValue() instanceof String) {
+                File f = new File((String) path.getValue());
+                if (!f.exists()) {
+                    try {
+                        f.getParentFile().mkdirs();
+                        f.createNewFile();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (f.isFile()) {
+                    try {
+                        FileWriter w = new FileWriter(f);
+                        w.write(contents.toString());
+                        w.flush();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction charAt = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 2)
+                return NULL;
+
+            if (args.get(1).getValue() instanceof Integer) {
+                return new Obj(args.get(0).toString().charAt((Integer) args.get(1).getValue()));
+            }
+
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction toint = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 1)
+                return NULL;
+
+            Obj o = args.get(0);
+
+            if (o.getValue() instanceof Integer) {
+                return new Obj(o.getValue());
+            } else if (o.getValue() instanceof String) {
+                try {
+                    return new Obj(Integer.parseInt(o.toString()));
+                } catch (NumberFormatException e) {
+                    return NULL;
+                }
+            }
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction typeof = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            if (args.size() != 1)
+                return NULL;
+
+            Obj o = args.get(0);
+
+            if (o.getValue() == null) {
+                return new Obj("null");
+            }
+
+            if (o.getValue() instanceof Integer) {
+                return new Obj("int");
+            } else if (o.getValue() instanceof String) {
+                return new Obj("string");
+            } else if (o.getValue() instanceof Function || o.getValue() instanceof ExternalFunction) {
+                return new Obj("function");
+            }
+
+            return NULL;
+        }
+    };
+
+    public static final ExternalFunction _args = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            return NULL;
         }
     };
 
@@ -57,16 +217,38 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    public static final ExternalFunction require = new ExternalFunction() {
+        @Override
+        public Obj invoke(List<Obj> args) {
+            return null;
+        }
+    };
+
+    private String path;
+
     private Stack<Map<String, Obj>> stack = new Stack<>();
     private Stack<AST> stackTrace = new Stack<>();
+    private String[] args;
 
-    public Interpreter() {
+    public Interpreter(String[] args) {
+        this.args = args;
+
         Map<String, Obj> globals = new HashMap<>();
 
+        globals.put("_println", new Obj(println, true));
+        globals.put("_readln", new Obj(readln, true));
+        globals.put("_args", new Obj(_args, true));
         globals.put("println", new Obj(println));
         globals.put("readln", new Obj(readln));
-        globals.put("__printstack", new Obj(__printstack));
-        globals.put("__printstacktrace", new Obj(__printstacktrace));
+        globals.put("charat", new Obj(charAt, true));
+        globals.put("toint", new Obj(toint, true));
+        globals.put("typeof", new Obj(typeof, true));
+        globals.put("require", new Obj(require, true));
+        globals.put("file_read", new Obj(file_read, true));
+        globals.put("file_write", new Obj(file_write, true));
+        globals.put("file_append", new Obj(file_append, true));
+        //globals.put("__printstack", new Obj(__printstack, true));
+        //globals.put("__printstacktrace", new Obj(__printstacktrace, true));
 
         stack.push(globals);
     }
@@ -187,6 +369,8 @@ public class Interpreter extends NodeVisitor {
                     obj = visitNode(arguments.next());
                 } catch (ReturnException e) {
                     obj = e.getObject();
+                } catch (NoSuchElementException e) {
+                    obj = NULL;
                 }
 
                 obj.setReference(true);
@@ -235,6 +419,38 @@ public class Interpreter extends NodeVisitor {
             }
 
             Obj result = ((ExternalFunction) o.getValue()).invoke(args);
+
+            if (o.getValue() == _args) {
+                if (args.size() == 1) {
+                    if (args.get(0).getValue() instanceof Integer)
+                        result = new Obj(this.args[(int) args.get(0).getValue()]);
+                }
+            } else if (o.getValue() == require) {
+                if (args.size() == 1) {
+                    String p = path;
+                    File f = new File(new File(p).getParentFile(), args.get(0).toString());
+
+                    List<String> contents = null;
+
+                    try {
+                        contents = Files.readAllLines(f.toPath());
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    assert contents != null;
+
+                    setPath(path);
+
+                    Lexer lexer = new Lexer(contents);
+
+                    Parser parser = new Parser(lexer);
+
+                    result = visitNode(parser.parse());
+
+                    path = p;
+                }
+            }
 
             for (Obj arg : args) {
                 arg.setReference(false);
@@ -302,7 +518,6 @@ public class Interpreter extends NodeVisitor {
                     throw new ReturnException(result);
             }
         } catch (ReturnException e) {
-            System.out.println("Program terminated: " + e.getObject().getValue());
             return e.getObject();
         } catch (RuntimeException e) {
             e.printStackTrace();
@@ -417,4 +632,11 @@ public class Interpreter extends NodeVisitor {
         return result;
     }
 
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 }
