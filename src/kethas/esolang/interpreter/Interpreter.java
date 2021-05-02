@@ -292,9 +292,9 @@ public class Interpreter extends NodeVisitor {
     }
 
     /**
-     * Attempts to set a named value. This function will try to find
-     * @param name
-     * @param value
+     * Attempts to set a named value. This function will try to find the variable in the current scope, and if it is not found, in the parent scopes.
+     * @param name The name of the variable to set.
+     * @param value The value to set it the variable to.
      */
     public void setObj(String name, Object value) {
         for (int i = stack.size() - 1; i >= 0; i--) {

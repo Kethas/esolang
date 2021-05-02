@@ -13,7 +13,7 @@ import java.lang.reflect.Method;
 public class NodeVisitor {
 
     /**
-     * Visit an AST node by automatically calling its associated function visitX where X is the classname of the node being visited/
+     * Visit an AST node by automatically calling its associated function visitX where X is the classname of the node being visited.
      * @param node The node to visit.
      * @return The output of the associated function which visited the node.
      */

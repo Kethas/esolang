@@ -167,7 +167,7 @@ public class Lexer {
 
     /**
      * This method lexes the next part of text and returns the token it finds.
-     * @return
+     * @return The token lexed.
      */
     public Token getNextToken() {
         while (currentChar != '\0') {
@@ -221,7 +221,7 @@ public class Lexer {
                 case '}':
                     advance();
                     return new Token(TokenType.RCBRACE, "}", getLine(), getColumn());
-                case 'λ':
+                case '\u03BB':
                     advance();
                     return new Token(TokenType.FUNCTION, "λ", getLine(), getColumn());
                 case '=':
