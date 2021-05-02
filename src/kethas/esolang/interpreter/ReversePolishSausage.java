@@ -6,7 +6,7 @@ import kethas.esolang.parser.ast.Num;
 /**
  * Created by Kethas on 14/04/2017.
  */
-public class ReversePolishSausage extends NodeVisitor {
+class ReversePolishSausage extends NodeVisitor {
 
     public void visitNum(Num node) {
         System.out.print(node.getValue());

@@ -6,10 +6,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
- * Created by Kethas on 14/04/2017.
+ * A NodeVisitor is a class that has a function that can handle any AST node and produce from it an Obj.
+ * The method NodeVisitor#visitNode(AST) will automatically call the appropriately named function using reflection.
+ * @author Kethas
  */
 public class NodeVisitor {
 
+    /**
+     * Visit an AST node by automatically calling its associated function visitX where X is the classname of the node being visited/
+     * @param node The node to visit.
+     * @return The output of the associated function which visited the node.
+     */
     public final Obj visitNode(AST node) {
         Class<? extends NodeVisitor> clazz = getClass();
         Class<? extends AST> nodeClass = node.getClass();

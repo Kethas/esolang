@@ -1,7 +1,9 @@
 package kethas.esolang.lexer;
 
 /**
- * Created by Kethas on 14/04/2017.
+ * This enum represents the type of a token.
+ * A token type has a
+ * @author Kethas
  */
 public enum TokenType {
     INTEGER("integer constant"),
@@ -31,7 +33,11 @@ public enum TokenType {
     OR("'or' keyword"),
     NAND("'nand' keyword"),
     NOR("'nor' keyword"),
-    EOF("end of file"), ARROW_R, EQUALS, LABRACKET, RABRACKET;
+    EOF("end of file"),
+    ARROW_R("'->'"),
+    EQUALS("'=='"),
+    LABRACKET("'<'"),
+    RABRACKET("'>'");
 
     private final String description;
 

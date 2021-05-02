@@ -1,0 +1,4 @@
+# declare a function
+var f = fun x, y -> x + (y * 2);
+
+println(f("x: ", 24))

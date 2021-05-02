@@ -11,7 +11,8 @@ import java.util.List;
 import static kethas.esolang.lexer.TokenType.*;
 
 /**
- * Created by Kethas on 01/04/2017.
+ * This class represents a Parser, which uses a Lexer in order to transform the source text into an Abstract Syntax Tree (AST).
+ * @author Kethas
  */
 public class Parser {
 
@@ -294,6 +295,10 @@ public class Parser {
         return program;
     }
 
+    /**
+     * Parse using the given lexer. This method will throw an exception if it has not consumed the entire file by parsing it.
+     * @return The AST node representing the program.
+     */
     public AST parse() {
         AST node = program();
 

@@ -1,7 +1,9 @@
 package kethas.esolang.lexer;
 
 /**
- * Created by Kethas on 01/04/2017.
+ * This class represents a token which has a type, a value, and a start position within the text.
+ *
+ * @author Kethas
  */
 public class Token {
 
@@ -16,6 +18,10 @@ public class Token {
         this.column = column;
     }
 
+    /**
+     * Turn this token into a String (prettily)
+     * @return A prettified string of this token (excluding position)
+     */
     @Override
     public String toString() {
         return String.format("Token(%s, %s)", type.name(), value);

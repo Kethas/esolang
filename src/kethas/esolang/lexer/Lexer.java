@@ -5,7 +5,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by Kethas on 01/04/2017.
+ * This represents a Lexer, which is given a text source in the form of a list of lines, and parses it to produces tokens on demand.
+ * @author Kethas
  */
 public class Lexer {
 
@@ -17,6 +18,10 @@ public class Lexer {
     private char currentChar;
     private String currentLine;
 
+    /**
+     * Construct a new Lexer with a program.
+     * @param text The lines of Fox code to lex.
+     */
     public Lexer(List<String> text) {
         this.text = text;
 
@@ -144,6 +149,11 @@ public class Lexer {
         return new Token(tokenType, id, getLine(), getColumn());
     }
 
+    /**
+     * This method will attempt to peek at the next token without moving the current position in the text.
+     * This operation is somewhat expensive since Lexer#getNextToken() will have to lex the same thing again.
+     * @return The next token.
+     */
     public Token peekNextToken() {
         int p = pos;
         int l = line;
@@ -155,6 +165,10 @@ public class Lexer {
         return token;
     }
 
+    /**
+     * This method lexes the next part of text and returns the token it finds.
+     * @return
+     */
     public Token getNextToken() {
         while (currentChar != '\0') {
             if (currentChar == ' ' || currentChar == '\t' || currentChar == '\n' || currentChar == '\r') {

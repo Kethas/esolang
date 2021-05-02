@@ -3,7 +3,8 @@ package kethas.esolang.interpreter;
 import java.util.List;
 
 /**
- * Created by kethas on 4/21/17.
+ * This function represents an external function (One which is implemented in Java, not Fox.
+ * @author Kethas
  */
 
 public abstract class ExternalFunction {

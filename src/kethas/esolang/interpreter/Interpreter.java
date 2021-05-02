@@ -15,11 +15,14 @@ import java.util.*;
 import static kethas.esolang.interpreter.Obj.NULL;
 
 /**
- * Created by Kethas on 14/04/2017.
- * TODO: Actual stacktrace with lines and whatever.
+ * This class visits every node in the AST and thus executes it.
+ * @author Kethas
  */
 public class Interpreter extends NodeVisitor {
 
+    /**
+     * This external function prints out (to stdout) its arguments separated by a single space and followed by a newline.
+     */
     public static final ExternalFunction println = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -31,6 +34,10 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function will println its arguments if there are any and then block until the user has input
+     * a line of text to stdin.
+     */
     public static final ExternalFunction readln = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -49,6 +56,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function returns the contents (in the form of a string) of the file specified by the string path in the first argument
+     */
     public static final ExternalFunction file_read = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -70,6 +80,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function writes (overwrites, if necessary) the given contents (arg 1) to the file specified by the string path (arg 0).
+     */
     public static final ExternalFunction file_write = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -101,6 +114,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function appends the contents (arg 1) to the end of the file specified by the string path (arg 0).
+     */
     public static final ExternalFunction file_append = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -137,6 +153,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function returns the char (as a number) at a given index (arg 1) of a string (arg 0).
+     */
     public static final ExternalFunction charAt = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -151,6 +170,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function attempts to convert its sole argument into an integer.
+     */
     public static final ExternalFunction toint = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -172,6 +194,9 @@ public class Interpreter extends NodeVisitor {
         }
     };
 
+    /**
+     * This external function returns the name of the type of its sole argument (as a string).
+     */
     public static final ExternalFunction typeof = new ExternalFunction() {
         @Override
         public Obj invoke(List<Obj> args) {
@@ -195,6 +220,7 @@ public class Interpreter extends NodeVisitor {
             return NULL;
         }
     };
+
 
     public static final ExternalFunction _args = new ExternalFunction() {
         @Override
@@ -247,12 +273,15 @@ public class Interpreter extends NodeVisitor {
         globals.put("file_read", new Obj(file_read, true));
         globals.put("file_write", new Obj(file_write, true));
         globals.put("file_append", new Obj(file_append, true));
-        //globals.put("__printstack", new Obj(__printstack, true));
-        //globals.put("__printstacktrace", new Obj(__printstacktrace, true));
 
         stack.push(globals);
     }
 
+    /**
+     * Attempts to look up a variable in the current scope, and if it is not found, in the parent scopes.
+     * @param name The name of the variable to look up.
+     * @return The Obj representing the variable.
+     */
     public Obj lookup(String name) {
         for (int i = stack.size() - 1; i >= 0; i--) {
             Map<String, Obj> m = stack.get(i);
@@ -262,6 +291,11 @@ public class Interpreter extends NodeVisitor {
         return NULL;
     }
 
+    /**
+     * Attempts to set a named value. This function will try to find
+     * @param name
+     * @param value
+     */
     public void setObj(String name, Object value) {
         for (int i = stack.size() - 1; i >= 0; i--) {
             Map<String, Obj> m = stack.get(i);

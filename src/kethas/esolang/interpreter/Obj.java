@@ -1,7 +1,8 @@
 package kethas.esolang.interpreter;
 
 /**
- * Created by Kethas on 14/04/2017.
+ * This class represents a runtime object used by kethas.esolang.interpreter.Interpreter
+ * @author Kethas
  */
 public class Obj {
 

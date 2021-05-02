@@ -1,7 +1,7 @@
 value_base  : INTEGER
             | STRING
             | var
-            | func_d
+            | lambda
             | null
             | value_base (arguments)*
             | if_s
@@ -22,13 +22,11 @@ expr        : term ((PLUS | MINUS) term)*
 
 null        : NULL
 
-var         : ID
-
 var_assign  : expr ASSIGN expr //LEFT OPERAND MUST BE VAR OR MEMBER
 
-func_d      : FUNCTION argument_d statement_c
+lambda      : FUNCTION var_l block
 
-var_l       : var (COMMA var)*
+var_l       : ID (COMMA ID)*
             | EMPTY
 
 arguments   : LPAREN expr_l RPAREN
@@ -36,16 +34,16 @@ arguments   : LPAREN expr_l RPAREN
 expr_l      : expr (COMMA expr)*
             | EMPTY
 
-statement_c : LCBRACE statement_l RCBRACE
+block       : LCBRACE statement_l RCBRACE
             | (COLON | ARROW_R) statement
 
 return_s    : RETURN expr
 
-if_s        : IF expr statement_c (elseif_s)* (else_s)?
+if_s        : IF expr block (elseif_s)* (else_s)?
 
-else_s      : ELSE statement_c
+else_s      : ELSE block
 
-elseif_s    : ELSEIF expr statement_c
+elseif_s    : ELSEIF expr block
 
 statement_l : statement
             | statement_l statement

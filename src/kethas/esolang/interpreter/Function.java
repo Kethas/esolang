@@ -7,7 +7,8 @@ import java.util.Map;
 import java.util.Stack;
 
 /**
- * Created by kethas on 4/21/17.
+ * This class represents a Fox function implemented using a reference to its AST node.
+ * @author Kethas
  */
 public class Function {
 

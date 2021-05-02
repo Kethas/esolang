@@ -12,7 +12,8 @@ import java.nio.file.Path;
 import java.util.List;
 
 /**
- * Created by kethas on 4/28/17.
+ * This class is a helper that allows you to easily interpret a file or list of lines.
+ * @author Kethas
  */
 public class Fox {
 
