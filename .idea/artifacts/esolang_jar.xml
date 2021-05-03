@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="esolang:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/esolang_jar</output-path>
+    <root id="archive" name="esolang.jar">
+      <element id="module-output" name="esolang" />
+    </root>
+  </artifact>
+</component>

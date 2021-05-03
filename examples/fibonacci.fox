@@ -1,0 +1,14 @@
+var fib = lambda n ->
+    if n == 0 or n == 1 -> 1
+    else -> fib(n - 1) + fib(n - 2)
+
+var printfib = lambda n -> println("fib(" + n + ") = " + fib(n))
+
+var printloop = lambda n ->
+    if n == 0 -> printfib(n)
+    else {
+        printfib(n)
+        printloop(n - 1)
+    }
+
+printloop(50)

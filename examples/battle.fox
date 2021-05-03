@@ -1,0 +1,57 @@
+var name = readln("What is your name?> ")
+
+var hp = 10;
+var monsterHp = 7;
+
+var start = lambda {
+    println("A monster appears!")
+    round()
+}
+
+var getPlayerChoice = lambda {
+    println("How will you attack?");
+    println("[0] Magic");
+    println("[1] Sword");
+    println("[2] Words");
+
+    var int = toint(readln(">"));
+
+    return
+        if int == null or int < 0 or int > 2 -> getPlayerChoice()
+        else -> int
+}
+
+var round = lambda {
+    var playerChoice = getPlayerChoice()
+
+    if playerChoice == 0 {
+        println("You cast Fireball for 2 damage!")
+        monsterHp = monsterHp - 2
+    } elseif playerChoice == 1 {
+        println("You hit for 2 damage!")
+        monsterHp = monsterHp - 2
+    } elseif playerChoice == 2 {
+        println("Your kind words fall on deaf ears...");
+    }
+
+    if monsterHp < 1 -> playerWon()
+    else {
+        println("The monster attacks you for 2 damage!")
+        hp = hp - 2
+
+        if hp < 1 -> monsterWon()
+        else -> round()
+    }
+}
+
+
+var playerWon = lambda {
+    println(name + " is victorious!")
+}
+
+var monsterWon = lambda {
+    println("The monster is victorious!")
+}
+
+
+start()
