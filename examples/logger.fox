@@ -1,0 +1,11 @@
+var filename = "log.txt"
+
+file_write(filename, "") # reset file
+
+var loop = lambda {
+    file_append(filename, readln("Enter something to log>") + "\n")
+    loop()
+}
+
+
+loop()
