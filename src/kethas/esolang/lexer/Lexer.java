@@ -6,6 +6,10 @@ import java.util.Map;
 
 /**
  * This represents a Lexer, which is given a text source in the form of a list of lines, and parses it to produces tokens on demand.
+ *
+ * This Lexer strongly resembles the one in LSBASI (https://ruslanspivak.com/lsbasi-part1/). This is because it is a
+ * simple to understand design which can easily be implemented in Java.
+ *
  * @author Kethas
  */
 public class Lexer {

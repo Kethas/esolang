@@ -8,14 +8,16 @@ import kethas.esolang.parser.ast.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.text.MessageFormat;
 import java.util.*;
 
 import static kethas.esolang.interpreter.Obj.NULL;
 
 /**
- * This class visits every node in the AST and thus executes it.
+ * This class visits every node in the AST and executes it accordingly.
  * @author Kethas
  */
 public class Interpreter extends NodeVisitor {
@@ -95,14 +97,19 @@ public class Interpreter extends NodeVisitor {
 
             if (path.getValue() instanceof String) {
                 File f = new File((String) path.getValue());
+                if (f.exists()) f.delete();
+
+                try {
+                    File d = f.getParentFile();
+                    if (d != null) d.mkdirs();
+                    f.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
                 if (f.isFile()) {
-                    f.delete();
                     try {
-                        f.getParentFile().mkdirs();
-                        f.createNewFile();
-                        FileWriter w = new FileWriter(f);
-                        w.write(contents.toString());
-                        w.flush();
+                        Files.write(f.toPath(), contents.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.WRITE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -131,7 +138,8 @@ public class Interpreter extends NodeVisitor {
                 File f = new File((String) path.getValue());
                 if (!f.exists()) {
                     try {
-                        f.getParentFile().mkdirs();
+                        File d = f.getParentFile();
+                        if (d != null) d.mkdirs();
                         f.createNewFile();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -139,9 +147,7 @@ public class Interpreter extends NodeVisitor {
                 }
                 if (f.isFile()) {
                     try {
-                        FileWriter w = new FileWriter(f);
-                        w.write(contents.toString());
-                        w.flush();
+                       Files.write(f.toPath(), contents.toString().getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

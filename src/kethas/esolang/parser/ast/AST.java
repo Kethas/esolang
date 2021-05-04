@@ -5,6 +5,11 @@ import kethas.esolang.lexer.Token;
 /**
  * This class is the superclass for any Abstract Syntax Tree Node type.
  * An Abstract Syntax Tree (AST) is a programmatical representation of a Fox program.
+ *
+ * This specific design of AST fits Fox in its current state because it can both be easily parsed from tokens and easily
+ * executed using a NodeVisitor. In the future there will be a NodeVisitor to convert AST into bytecode which would then
+ * be executed on its own VM.
+ *
  * @author Kethas
  */
 public abstract class AST {

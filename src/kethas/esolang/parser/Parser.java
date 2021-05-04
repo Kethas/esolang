@@ -12,6 +12,10 @@ import static kethas.esolang.lexer.TokenType.*;
 
 /**
  * This class represents a Parser, which uses a Lexer in order to transform the source text into an Abstract Syntax Tree (AST).
+ *
+ * This Parser strongly resembles the one in LSBASI (https://ruslanspivak.com/lsbasi-part1/). This is because it is a
+ *  * simple to understand design which can easily be implemented in Java.
+ *
  * @author Kethas
  */
 public class Parser {

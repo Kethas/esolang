@@ -21,10 +21,16 @@ public class Function {
         this.funcDeclaration = funcDeclaration;
     }
 
+    /**
+     * @return A clone of the stack used when declaring this function.
+     */
     public Stack<Map<String, Obj>> getLocals() {
         return locals;
     }
 
+    /**
+     * @return The original function declaration AST.
+     */
     public FuncDeclaration getFuncDeclaration() {
         return funcDeclaration;
     }

@@ -45,3 +45,18 @@ var recursive = lambda n -> # functions can even be recursive!
 ```
 
 See the 'examples' folder for more examples.
+
+### Fox Standard functions ###
+I have added a few external helper functions to Fox in order to make it more useful.
+
+* `println(x, y, ..., z)` - prints out (to `stdout`) its arguments separated by a single space and followed by a newline after the final argument.
+* `readln(prompt?)` - prints out `prompt` (if there is one) and blocks until the user enters a line to `stdin`.
+* `file_read(path)` - returns the contents (in the form of a string) of the file specified by the string `path`.
+* `file_write(path, contents)` - writes (overwrites, if necessary) `contents` to the file specified by the string `path`.
+* `file_append(path, contents)` - appends `contents` to the end of the file specified by the string `path`.
+* `charAt(o, i)` - returns an integer representing the character of `o` turned into a string at the index specified by `i`.
+* `toint(o)` - attempts to convert `o` into an integer.
+* `typeof(o)` - returns the string representation of the data type of `o`.
+
+Try not to break these functions (by passing illegal indices or paths) because it will throw a Java exception, 
+and not necessarily just return null in Fox.
