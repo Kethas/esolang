@@ -10,6 +10,8 @@ import java.util.Map;
  * This Lexer strongly resembles the one in LSBASI (https://ruslanspivak.com/lsbasi-part1/). This is because it is a
  * simple to understand design which can easily be implemented in Java.
  *
+ * See src/esolang.grammar for a list of tokens.
+ *
  * @author Kethas
  */
 public class Lexer {

@@ -354,25 +354,26 @@ public class Interpreter extends NodeVisitor {
     }
 
     public Obj visitVarAssign(VarAssign node) {
+        // evaluate the new value to set
         Obj newValue = visitNode(node.getValue());
 
+        // save old value to use later
         Obj prevValue = lookup(node.getVar().getName());
 
         if (prevValue != NULL) {
-            if (prevValue.isReference()) {
+            if (prevValue.isReference()) { // if it should act like a reference, set the underlying value
                 prevValue.setValue(newValue.getValue());
-            } else if (!prevValue.isConstant()) {
+            } else if (!prevValue.isConstant()) { // otherwise if it isn't constant, replace the Obj itself.
                 setObj(node.getVar().getName(), newValue.getValue());
             } else {
                 //except when exceptions are implemented.
             }
-        } else {
+        } else { // if the prev value was Obj.NULL then just set the new Obj
             setObj(node.getVar().getName(), newValue.getValue());
         }
 
-        Obj value = lookup(node.getVar().getName());
-
-        return value;
+        // return the new value
+        return lookup(node.getVar().getName());
     }
 
     public Obj visitNull(Null node) {
@@ -380,6 +381,7 @@ public class Interpreter extends NodeVisitor {
     }
 
     public Obj visitFuncDeclaration(FuncDeclaration node) {
+        // create a new Function Obj with a copy of the current stack.
         //noinspection unchecked
         return new Obj(new Function((Stack<Map<String, Obj>>) stack.clone(), node));
     }
@@ -387,6 +389,7 @@ public class Interpreter extends NodeVisitor {
     public Obj visitFuncCall(FuncCall node) {
         //TODO: Handle non-function calls (String/Integer)
 
+        // evaluate the function
         Obj o = visitNode(node.getFunc());
 
         stackTrace.push(node);
@@ -405,6 +408,7 @@ public class Interpreter extends NodeVisitor {
                 Var var = argumentDec.next();
                 Obj obj;
 
+                // evaluate next arg, catch return if thrown, we don't want returns to propagate any further
                 try {
                     obj = visitNode(arguments.next());
                 } catch (ReturnException e) {
@@ -413,54 +417,55 @@ public class Interpreter extends NodeVisitor {
                     obj = NULL;
                 }
 
+                // pass by reference
                 obj.setReference(true);
 
+                // add to arg locals
                 funcLocals.put(var.getName(), obj);
             }
 
+            // copy the decl locals
             //noinspection unchecked
             Stack<Map<String, Obj>> locals = (Stack<Map<String, Obj>>) func.getLocals().clone();
 
+            // and push the arg locals into them
             locals.push(funcLocals);
-            stack = locals;
+            stack = locals; // swap stack with locals
 
             Obj result;
 
+            // invoke function
             try {
                 result = visitNode(func.getFuncDeclaration().getStatements());
             } catch (ReturnException e) {
                 result = e.getObject();
             }
 
+            // set reference to false
             for (Var var : func.getFuncDeclaration().getArguments()) {
                 stack.lastElement().get(var.getName()).setReference(false);
             }
 
+            // swap locals with stack
             stack = temp;
 
 
             return result;
         } else if (o.getValue() instanceof ExternalFunction) {
-            if (o.getValue() == __printstack) {
-                printStack();
-                return NULL;
-            } else if (o.getValue() == __printstacktrace) {
-                printStackTrace();
-                return NULL;
-            }
-            //FIXED! Oh my god I am SUCH an idiot.
-
             List<Obj> args = new ArrayList<>();
 
+            // evaluate arguments
             for (AST ast : node.getArguments()) {
                 Obj arg = visitNode(ast);
+                // true to pass by reference
                 arg.setReference(true);
                 args.add(arg);
             }
 
+            // invoke extern
             Obj result = ((ExternalFunction) o.getValue()).invoke(args);
 
-            if (o.getValue() == _args) {
+            /*if (o.getValue() == _args) {
                 if (args.size() == 1) {
                     if (args.get(0).getValue() instanceof Integer)
                         result = new Obj(this.args[(int) args.get(0).getValue()]);
@@ -490,8 +495,9 @@ public class Interpreter extends NodeVisitor {
 
                     path = p;
                 }
-            }
+            }*/
 
+            // set references to false again
             for (Obj arg : args) {
                 arg.setReference(false);
             }
@@ -500,13 +506,16 @@ public class Interpreter extends NodeVisitor {
         } else if (o.getValue() instanceof String) {
             List<Object> args = new ArrayList<>();
 
+            // eval args
             for (AST ast : node.getArguments()) {
                 Obj arg = visitNode(ast);
                 args.add(arg.getValue());
             }
 
+            // format
             String formatted = MessageFormat.format((String) o.getValue(), args.toArray());
 
+            // return formatted string
             return new Obj(formatted);
         } else {
             throw new RuntimeException("Cannot call value " + o.getValue());
@@ -515,50 +524,52 @@ public class Interpreter extends NodeVisitor {
 
     public Obj visitCompoundStatement(CompoundStatement node) {
         Obj result = NULL;
+
+        // eval all stmts in sequence, keep only the last one
         for (AST ast : node.getStatements()) {
             result = visitNode(ast);
-
-            if (ast instanceof Return)
-                throw new ReturnException(result);
         }
 
+        // return last stmt
         return result;
     }
 
     public Obj visitReturn(Return node) {
-        return visitNode(node.getNode());
+        throw new ReturnException(visitNode(node.getNode()));   // propagate a return exception out from here.
+                                                                // this has the added benefit of stopping execution at the return stmt automatically
+                                                                // but this should be replaced with something better
     }
 
     public Obj visitIf(If node) {
+        // eval the condition
         Obj condition = visitNode(node.getCondition());
 
-        if (condition.isTruthy()) {
+        if (condition.isTruthy()) { // if the condition is truthy return the evaluation of the if body
             return visitNode(node.getStatements());
         } else {
-            for (ElseIf elseIf : node.getElseIfs()) {
-                if (visitNode(elseIf.getCondition()).isTruthy()) {
-                    return visitNode(elseIf.getStatements());
+            for (ElseIf elseIf : node.getElseIfs()) { // for each else if
+                if (visitNode(elseIf.getCondition()).isTruthy()) { // if its condition is truthy
+                    return visitNode(elseIf.getStatements()); // return the evaluation of the else if body
                 }
             }
 
-            if (node.getElse() != null) {
-                return visitNode(node.getElse().getStatements());
+            if (node.getElse() != null) { // if there is an else
+                return visitNode(node.getElse().getStatements()); // return the evaluation of the else body
             }
         }
+
+        // if no body got executed so far just return Obj.NULL
         return NULL;
     }
 
     public Obj visitProgram(Program node) {
         try {
-            Obj result;
+            // evaluate stmts sequentially
             for (AST ast : node.getStatements()) {
-                result = visitNode(ast);
-
-                if (ast instanceof Return)
-                    throw new ReturnException(result);
+                visitNode(ast);
             }
         } catch (ReturnException e) {
-            return e.getObject();
+            return e.getObject(); // return from program scope only if return is used
         } catch (RuntimeException e) {
             e.printStackTrace();
         }
@@ -574,15 +585,18 @@ public class Interpreter extends NodeVisitor {
         Obj left, right;
 
         switch (node.getToken().type) {
-            case PLUS:
+            // evaluate left operand first, then add it with the evaluation of the right operand
+            case PLUS: // add
                 return visitNode(node.getLeft()).add(visitNode(node.getRight()));
-            case MINUS:
+            case MINUS: // subtract
                 return visitNode(node.getLeft()).subtract(visitNode(node.getRight()));
-            case MUL:
+            case MUL: // multiply
                 return visitNode(node.getLeft()).multiply(visitNode(node.getRight()));
-            case DIV:
+            case DIV: // divide
                 return visitNode(node.getLeft()).divide(visitNode(node.getRight()));
-            case AND:
+
+            // evaluate based on a condition
+            case AND: // if the left isn't truthy the result is known and it returns false immediately.
                 left = visitNode(node.getLeft());
                 if (left.isTruthy()) {
                     if ((right = visitNode(node.getRight())).isTruthy())
@@ -590,7 +604,7 @@ public class Interpreter extends NodeVisitor {
                 }
 
                 return new Obj(0);
-            case NAND:
+            case NAND: // if the left is truthy the result is known and it returns false immediately.
                 left = visitNode(node.getLeft());
                 if (!left.isTruthy()) {
                     if (!(right = visitNode(node.getRight())).isTruthy())
@@ -598,7 +612,7 @@ public class Interpreter extends NodeVisitor {
                 }
 
                 return new Obj(0);
-            case OR:
+            case OR: // if the left is truthy, return it immediately
                 left = visitNode(node.getLeft());
 
                 if (left.isTruthy()) {
@@ -611,7 +625,7 @@ public class Interpreter extends NodeVisitor {
                         return left;
                     }
                 }
-            case NOR:
+            case NOR: // if the left isn't truthy, return it immediately
                 left = visitNode(node.getLeft());
 
                 if (!left.isTruthy()) {
@@ -624,17 +638,19 @@ public class Interpreter extends NodeVisitor {
                         return left;
                     }
                 }
-            case EQUALS:
+
+            // relational operators
+            case EQUALS: // equality operator
                 left = visitNode(node.getLeft());
                 right = visitNode(node.getRight());
 
                 return left.getValue().equals(right.getValue()) ? new Obj(1) : new Obj(0);
-            case NOT:
+            case NOT: // inequality operator
                 left = visitNode(node.getLeft());
                 right = visitNode(node.getRight());
 
                 return !left.getValue().equals(right.getValue()) ? new Obj(1) : new Obj(0);
-            case LABRACKET:
+            case LABRACKET: // less-than operator
                 left = visitNode(node.getLeft());
                 right = visitNode(node.getRight());
 
@@ -642,7 +658,7 @@ public class Interpreter extends NodeVisitor {
                     return (Integer) left.getValue() < (Integer) right.getValue() ? new Obj(1) : new Obj(0);
                 }
                 return NULL;
-            case RABRACKET:
+            case RABRACKET: // greater-than operator
                 left = visitNode(node.getLeft());
                 right = visitNode(node.getRight());
 
@@ -656,16 +672,17 @@ public class Interpreter extends NodeVisitor {
     }
 
     public Obj visitUnaryOp(UnaryOp node) {
+        // eval inner
         Obj result = visitNode(node.getNode());
 
-        if (node.getToken().type.is(TokenType.MINUS)) {
-            result = result.multiply(new Obj(-1));
-        } else if (node.getToken().type.is(TokenType.NOT)) {
-            boolean truthy = result.isTruthy();
+        if (node.getToken().type.is(TokenType.MINUS)) { // negation
+            result = result.multiply(new Obj(-1)); // multiply by -1
+        } else if (node.getToken().type.is(TokenType.NOT)) { // NOT
+            boolean truthy = result.isTruthy(); // whether it is truthy or not
             if (truthy)
-                result = new Obj(0);
+                result = new Obj(0); // return false -- 0
             else
-                result = new Obj(1);
+                result = new Obj(1); // return true -- 1
         }
 
 
