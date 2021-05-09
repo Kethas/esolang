@@ -60,3 +60,17 @@ I have added a few external helper functions to Fox in order to make it more use
 
 Try not to break these functions (by passing illegal indices or paths) because it will throw a Java exception, 
 and not necessarily just return null in Fox.
+
+
+### Why ###
+This project was a learning experience for me. I had wanted to make my own programming language for quite a while, and when 
+I found the tutorial LSBASI (https://ruslanspivak.com/lsbasi-part1/) I immediately started to follow it. While the original 
+Interpreter is written in Python, I decided to use Java for mine, as I was more familiar with Java.
+
+I had also wanted to make this programming language more functional, yet still a scripting language. This was, unfortunately,
+before I had learnt Haskell or anything else functional. As a result, functions are always first-class, though they receive
+a list of arguments and cannot be called partially. Also, variables are always mutable and all side effects are allowed, 
+something that, today, is considered highly un-functional.
+
+This project, however un-functional it is, did teach me a lot about how programming languages are lexed and parsed, and 
+how to write simple lexers and parsers.
